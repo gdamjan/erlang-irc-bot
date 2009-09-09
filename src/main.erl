@@ -9,8 +9,8 @@ client(SomeHostInNet, Port, Nick, Channels) ->
     {ok, Sock} = gen_tcp:connect(SomeHostInNet, Port,
                     [binary, {active, true}, {packet, line}]),
     % must fire these very soon after connecting
-    gen_tcp:send(Sock, string:join(["NICK", Nick, "\r\n"], " ")), 
-    gen_tcp:send(Sock, string:join(["USER", Nick, "0 *  :", Nick, "\r\n"], " ")),
+    gen_tcp:send(Sock, ["NICK ", Nick, "\r\n"]), 
+    gen_tcp:send(Sock, ["USER ", Nick, " 0 *  : ", Nick, "\r\n"]),
     joinChannels(Sock, Channels),
     main_loop(Sock).
 
