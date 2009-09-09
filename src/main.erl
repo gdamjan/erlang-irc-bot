@@ -7,7 +7,7 @@ start(Args) ->
 
 client(SomeHostInNet, Port, Nick, Channels) ->
     {ok, Sock} = gen_tcp:connect(SomeHostInNet, Port,
-                    [binary, {active, true}, {packet, 0}]),
+                    [binary, {active, true}, {packet, line}]),
     % must fire these very soon after connecting
     gen_tcp:send(Sock, string:join(["NICK", Nick, "\r\n"], " ")), 
     gen_tcp:send(Sock, string:join(["USER", Nick, "0 *  :", Nick, "\r\n"], " ")),
@@ -34,8 +34,8 @@ main_loop(Sock) ->
                     Client ! {self(), data_sent},
                     main_loop(Sock)
             end;
-        {tcp, Sock, Data} ->
-            case process(Data) of
+        {tcp, Sock, Line} ->
+            case process(Line) of
                 ok ->
                     ok;
                 Answer ->
@@ -52,6 +52,6 @@ main_loop(Sock) ->
             ok
     end.
 
-process(Data) ->
-    io:format("~ts", [Data]),
+process(Line) ->
+    io:format("~ts", [Line]),
     ok.
