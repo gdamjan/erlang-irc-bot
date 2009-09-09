@@ -53,5 +53,10 @@ main_loop(Sock) ->
     end.
 
 process(Line) ->
-    io:format("~ts", [Line]),
-    ok.
+    case Line of
+        <<"PING", Rest/binary>> ->
+            [<<"PONG">>, Rest];
+        Else ->
+            io:format("~ts", [Else]),
+            ok
+    end.
