@@ -1,6 +1,10 @@
 -module(main).
+-author('gdamjan@gmail.com').
 
 -export([start/1, client/4]).
+
+-define(REALNAME, "Damjan's experimental Erlang IRC bot").
+-define(CRNL, "\r\n").
 
 start(Args) ->
     spawn(?MODULE, client, Args).
@@ -9,8 +13,8 @@ client(SomeHostInNet, Port, Nick, Channels) ->
     {ok, Sock} = gen_tcp:connect(SomeHostInNet, Port,
                     [binary, {active, true}, {packet, line}]),
     % must fire these very soon after connecting
-    gen_tcp:send(Sock, ["NICK ", Nick, "\r\n"]), 
-    gen_tcp:send(Sock, ["USER ", Nick, " 0 *  : ", Nick, "\r\n"]),
+    gen_tcp:send(Sock, ["NICK ", Nick, ?CRNL]), 
+    gen_tcp:send(Sock, ["USER ", Nick, " 0 *  : ", ?REALNAME, ?CRNL]),
     joinChannels(Sock, Channels),
     main_loop(Sock).
 
@@ -19,7 +23,7 @@ joinChannels(Sock, Channels) ->
     joinChannels(Sock, Channel, Rest).
 
 joinChannels(Sock, Channel, []) ->
-    gen_tcp:send(Sock, string:join(["JOIN", Channel, "\r\n"], " "));
+    gen_tcp:send(Sock, ["JOIN ", Channel, ?CRNL]);
 
 joinChannels(Sock, Channel, Channels) ->
     joinChannels(Sock, Channel, []),
@@ -47,7 +51,7 @@ main_loop(Sock) ->
             ok;
         Other ->
             io:format("Got ~w - goodbye!~n", [Other]),
-            gen_tcp:send(Sock, "QUIT : erlang sucks - just kidding :)\r\n"),
+            gen_tcp:send(Sock, ["QUIT : erlang sucks - just kidding :)", ?CRNL]),
             gen_tcp:close(Sock),
             ok
     end.
