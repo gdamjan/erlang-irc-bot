@@ -1,7 +1,7 @@
 -module(main).
 -author('gdamjan@gmail.com').
 
--export([start/1, client/4]).
+-export([start/1, client/4, codeswitch/1]).
 
 -define(REALNAME, "Damjan's experimental Erlang IRC bot").
 -define(CRNL, "\r\n").
@@ -32,6 +32,9 @@ joinChannels(Sock, Channel, Channels) ->
 
 main_loop(Sock) ->
     receive
+        code_switch ->
+            % Force the use of 'codeswitch/1' from the latest MODULE version
+            ?MODULE:codeswitch(Sock);  
         {Client, send_data, Binary} ->
             case gen_tcp:send(Sock, [Binary]) of
                 ok ->
@@ -64,3 +67,7 @@ process(Line) ->
             io:format("~ts", [Else]),
             ok
     end.
+
+codeswitch(Sock) -> 
+   io:format("module reloaded~n"),
+   main_loop(Sock).
