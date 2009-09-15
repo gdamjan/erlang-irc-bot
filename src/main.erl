@@ -66,6 +66,10 @@ main_loop(Sock, Args) ->
             gen_tcp:close(Sock),
             io:format("Bye.~n"),
             ok;
+        restart ->
+            gen_tcp:send(Sock, ["QUIT :", ?QUITMSG, ?CRNL]),
+            gen_tcp:close(Sock),
+            apply(client, Args);
         % message received from another process
         {Client, send_data, Binary} ->
             case gen_tcp:send(Sock, [Binary]) of
