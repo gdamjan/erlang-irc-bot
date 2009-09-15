@@ -1,25 +1,31 @@
 -module(main).
 -author('gdamjan@gmail.com').
 
--export([start/1, client/4, codeswitch/1]).
+-export([start/1, client/4, codeswitch/2]).
 
 -define(REALNAME, "Damjan's experimental Erlang IRC bot").
 -define(QUITMSG, "Shutting down the universe...").
+-define(TCPTIMEOUT, 60000). % 1min
 -define(CRNL, "\r\n").
 
 start(Args) ->
     spawn(?MODULE, client, Args).
 
 client(SomeHostInNet, Port, Nick, Channels) ->
+    client(SomeHostInNet, Port, Nick, Channels, 0).
+
+client(SomeHostInNet, Port, Nick, Channels, Backoff) ->
     % open a TCP connectin to the IRC server, we set the socket options to
     % {packet, line} which means will receive data line-by-line (which is very
     % neat for the IRC protocol).
     % FIXME: error handling
+    {Sleep, NextBackoff} = utils:backoff(Backoff),
+    timer:sleep(Sleep),
     {ok, Sock} = gen_tcp:connect(SomeHostInNet, Port,
-                    [binary, {active, true}, {packet, line}]),
+                    [binary, {active, true}, {packet, line}], ?TCPTIMEOUT),
     registerNick(Sock, Nick),
     joinChannels(Sock, Channels),
-    main_loop(Sock).
+    main_loop(Sock, [SomeHostInNet, Port, Nick, Channels, NextBackoff]).
 
 
 registerNick(Sock, Nick) ->
@@ -47,7 +53,7 @@ joinChannels(Sock, Channel, Channels) ->
 % this is the main loop of the process, it will receive data from the socket
 % and also messages from other processes, will loop forever until an unknown
 % message is received.
-main_loop(Sock) ->
+main_loop(Sock, Args) ->
     receive
         % When the process receives this message, it will call 'codeswitch/1' 
         % from the *latest* MODULE version, 
@@ -65,7 +71,7 @@ main_loop(Sock) ->
             case gen_tcp:send(Sock, [Binary]) of
                 ok ->
                     Client ! {self(), data_sent},
-                    main_loop(Sock)
+                    main_loop(Sock, Args)
             end;
         % data received from the socket
         {tcp, Sock, Data} ->
@@ -78,21 +84,21 @@ main_loop(Sock) ->
                 _ ->
                     ok
             end,
-            main_loop(Sock);
+            main_loop(Sock, Args);
         % FIXME: handle errors on the socket
         {tcp_error, Sock, Reason} ->
             io:format("Socket ~w error: ~w [~w]~n", [Sock, Reason, self()]),
-            ok;
+            apply(client, Args);  % restart
         {tcp_closed, Sock} ->
             io:format("Socket ~w closed [~w]~n", [Sock, self()]),
-            ok;
+            apply(client, Args);  % restart
         % catch all, log and loop back
         CatchAll ->
             io:format("UNK: ~w~n", [CatchAll]),
-            main_loop(Sock)
+            main_loop(Sock, Args)
     end.
 
 % when this function is called Erlang will have the chance to run a new
 % main_loop(Sock) implementation (see: Hot code reloading)
-codeswitch(Sock) -> 
-   main_loop(Sock).
+codeswitch(Sock, Args) ->
+    main_loop(Sock, Args).
