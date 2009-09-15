@@ -61,12 +61,13 @@ main_loop(Sock) ->
                     main_loop(Sock)
             end;
         % data received from the socket
-        {tcp, Sock, Line} ->
-            case process(Line) of
-                ok ->
-                    ok;
-                Answer ->
-                    gen_tcp:send(Sock, Answer)
+        {tcp, Sock, Data} ->
+            [Line, _] = re:split(Data, "\r\n"), % strip the CRNL at the end
+            case handlers:process(Line) of
+                {respond, Response} ->
+                    gen_tcp:send(Sock, [Response, ?CRNL]);
+                _ ->
+                    ok
             end,
             main_loop(Sock);
         % FIXME: handle errors on the socket 
@@ -78,15 +79,6 @@ main_loop(Sock) ->
             io:format("Got ~w - goodbye!~n", [Other]),
             gen_tcp:send(Sock, ["QUIT : erlang sucks - just kidding :)", ?CRNL]),
             gen_tcp:close(Sock),
-            ok
-    end.
-
-process(Line) ->
-    case Line of
-        <<"PING", Rest/binary>> ->
-            [<<"PONG">>, Rest];
-        Else ->
-            io:format("~ts", [Else]),
             ok
     end.
 
