@@ -4,6 +4,7 @@
 -export([start/1, client/4, codeswitch/1]).
 
 -define(REALNAME, "Damjan's experimental Erlang IRC bot").
+-define(QUITMSG, "Shutting down the universe...").
 -define(CRNL, "\r\n").
 
 start(Args) ->
@@ -53,6 +54,12 @@ main_loop(Sock) ->
         % codeswitch/1 just calls main_loop/1 again
         code_switch ->
             ?MODULE:codeswitch(Sock);
+        shut_down ->
+            io:format("Shuting down. "),
+            gen_tcp:send(Sock, ["QUIT :", ?QUITMSG, ?CRNL]),
+            gen_tcp:close(Sock),
+            io:format("Bye.~n"),
+            ok;
         % message received from another process
         {Client, send_data, Binary} ->
             case gen_tcp:send(Sock, [Binary]) of
@@ -72,16 +79,17 @@ main_loop(Sock) ->
                     ok
             end,
             main_loop(Sock);
-        % FIXME: handle errors on the socket 
+        % FIXME: handle errors on the socket
+        {tcp_error, Sock, Reason} ->
+            io:format("Socket ~w error: ~w [~w]~n", [Sock, Reason, self()]),
+            ok;
         {tcp_closed, Sock} ->
             io:format("Socket ~w closed [~w]~n", [Sock, self()]),
             ok;
-        % anything else the loop will exit
-        Other ->
-            io:format("Got ~w - goodbye!~n", [Other]),
-            gen_tcp:send(Sock, ["QUIT : erlang sucks - just kidding :)", ?CRNL]),
-            gen_tcp:close(Sock),
-            ok
+        % catch all, log and loop back
+        CatchAll ->
+            io:format("UNK: ~w~n", [CatchAll]),
+            main_loop(Sock)
     end.
 
 % when this function is called Erlang will have the chance to run a new
