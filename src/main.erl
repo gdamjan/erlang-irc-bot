@@ -21,12 +21,19 @@ client(SomeHostInNet, Port, Nick, Channels, Backoff) ->
     % FIXME: error handling
     {Sleep, NextBackoff} = utils:backoff(Backoff),
     timer:sleep(Sleep),
+    {ok, Sock} = login(SomeHostInNet, Port, Nick, Channels),
+    main_loop(Sock, [SomeHostInNet, Port, Nick, Channels, NextBackoff]).
+
+login(SomeHostInNet, Port, Nick, Channels) ->
     {ok, Sock} = gen_tcp:connect(SomeHostInNet, Port,
                     [binary, {active, true}, {packet, line}], ?TCPTIMEOUT),
     registerNick(Sock, Nick),
     joinChannels(Sock, Channels),
-    main_loop(Sock, [SomeHostInNet, Port, Nick, Channels, NextBackoff]).
+    {ok, Sock}.
 
+quit(Sock) ->
+     gen_tcp:send(Sock, ["QUIT :", ?QUITMSG, ?CRNL]),
+     gen_tcp:close(Sock).
 
 registerNick(Sock, Nick) ->
     % Connection Registration:
@@ -62,14 +69,12 @@ main_loop(Sock, Args) ->
             ?MODULE:codeswitch(Sock);
         shut_down ->
             io:format("Shuting down. "),
-            gen_tcp:send(Sock, ["QUIT :", ?QUITMSG, ?CRNL]),
-            gen_tcp:close(Sock),
+            quit(Sock),
             io:format("Bye.~n"),
             ok;
         restart ->
-            gen_tcp:send(Sock, ["QUIT :", ?QUITMSG, ?CRNL]),
-            gen_tcp:close(Sock),
-            apply(client, Args);
+            quit(Sock),
+            apply(?MODULE, client, Args);
         % message received from another process
         {Client, send_data, Binary} ->
             case gen_tcp:send(Sock, [Binary]) of
@@ -92,10 +97,10 @@ main_loop(Sock, Args) ->
         % FIXME: handle errors on the socket
         {tcp_error, Sock, Reason} ->
             io:format("Socket ~w error: ~w [~w]~n", [Sock, Reason, self()]),
-            apply(client, Args);  % restart
+            apply(?MODULE, client, Args);  % restart
         {tcp_closed, Sock} ->
             io:format("Socket ~w closed [~w]~n", [Sock, self()]),
-            apply(client, Args);  % restart
+            apply(?MODULE, client, Args);  % restart
         % catch all, log and loop back
         CatchAll ->
             io:format("UNK: ~w~n", [CatchAll]),
