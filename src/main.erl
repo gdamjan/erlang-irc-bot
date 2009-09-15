@@ -63,8 +63,10 @@ main_loop(Sock) ->
         % data received from the socket
         {tcp, Sock, Data} ->
             [Line, _] = re:split(Data, "\r\n"), % strip the CRNL at the end
+            io:format(" IN: ~ts~n", [Line]),    % for debuging only
             case handlers:process(Line) of
                 {respond, Response} ->
+                    io:format("OUT: ~ts~n", [Response]), % for debuging only
                     gen_tcp:send(Sock, [Response, ?CRNL]);
                 _ ->
                     ok
