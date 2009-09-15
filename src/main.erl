@@ -3,7 +3,7 @@
 
 -export([start/1, client/4, codeswitch/2]).
 
--define(REALNAME, "Damjan's experimental Erlang IRC bot").
+-define(REALNAME, "An experimental Erlang IRC bot").
 -define(QUITMSG, "Shutting down the universe...").
 -define(TCPTIMEOUT, 60000). % 1min
 -define(CRNL, "\r\n").
@@ -39,7 +39,7 @@ registerNick(Sock, Nick) ->
     % Connection Registration:
     % on freenode you must fire these very soon after connecting or the server
     % disconnects you
-    gen_tcp:send(Sock, ["NICK ", Nick, ?CRNL]), 
+    gen_tcp:send(Sock, ["NICK ", Nick, ?CRNL]),
     gen_tcp:send(Sock, ["USER ", Nick, " 0 *  : ", ?REALNAME, ?CRNL]).
 
 % recurses through the list 'Channels' and JOINs each of them
@@ -62,8 +62,8 @@ joinChannels(Sock, Channel, Channels) ->
 % message is received.
 main_loop(Sock, Args) ->
     receive
-        % When the process receives this message, it will call 'codeswitch/1' 
-        % from the *latest* MODULE version, 
+        % When the process receives this message, it will call 'codeswitch/1'
+        % from the *latest* MODULE version,
         % codeswitch/1 just calls main_loop/1 again
         code_switch ->
             ?MODULE:codeswitch(Sock);

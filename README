@@ -6,21 +6,33 @@ purpose of learning erlang first, and then to use it on
 different irc channels.
 
 Steps:
-. connect to the irc server
++ connect to the irc server
 . authenticate to nickserv
-. join channel
-. join another channel
++ join channel
++ join another channel
 . handle errors, disconnections and reconnections
+. CTCP-PING, CTCP-VERSION
 . implement a !seen command
 . implement loging to couchdb
 . refactor code in more usefull chunks
 . web interface (Yaws or Mochiweb) for basic status and control
 . improve logging (tags, messages and events separatelly)
 . web interface - implement log view
+. keep track of people entering and leaving a channel (away too?)
 
 Commands:
 !seen - replies when was someone last seen on the current channel
 !tell - tell someone something when he appears online (or is not away any more)
 !go - google search, feeling lucky, return title of result
 !wiki - wikipedia == || ==
+!info - information about the bot: mem usage, uptime, channels, os type and version
+help -> Hello, this is...
 ???
+
+Database:
+  {Nick, Channel} -> Status
+
+  Status is:
+    {present, LastActivity} -> from JOIN,PRIVMSG
+    {away,    LastActivity} -> AWAY plus -^
+    {notpresent, LastPresent, Message} -> from QUIT
