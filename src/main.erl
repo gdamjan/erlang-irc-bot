@@ -1,12 +1,9 @@
 -module(main).
 -author('gdamjan@gmail.com').
+-include_lib("common.hrl").
 
 -export([start/1, client/4, codeswitch/2]).
 
--define(REALNAME, "An experimental Erlang IRC bot").
--define(QUITMSG, "Shutting down the universe...").
--define(TCPTIMEOUT, 60000). % 1min
--define(CRNL, "\r\n").
 
 start(Args) ->
     spawn(?MODULE, client, Args).
