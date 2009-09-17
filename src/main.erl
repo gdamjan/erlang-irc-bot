@@ -81,6 +81,9 @@ main_loop(Sock) ->
         restart ->
             quit(Sock),
             restart;
+        ping ->
+            gen_tcp:send(Sock, ["PING :irc.freenode.net", ?CRNL]),
+            main_loop(Sock);
         % message received from another process
         {Client, send_data, Data} ->
             case gen_tcp:send(Sock, [Data, ?CRNL]) of
@@ -111,6 +114,9 @@ main_loop(Sock) ->
         CatchAll ->
             io:format("UNK: ~w~n", [CatchAll]),
             main_loop(Sock)
+    after ?TCPTIMEOUT ->
+        gen_tcp:send(Sock, ["PING irc.freenode.net", ?CRNL]),
+        main_loop(Sock)
     end.
 
 % when this function is called Erlang will have the chance to run a new
