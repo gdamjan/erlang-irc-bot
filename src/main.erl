@@ -5,8 +5,8 @@
 %% user interface
 -export([start/1]).
 
-%% exports for use within module only (used in apply, spawn)
--export([client/4, codeswitch/1]).
+%% exports for use within module only
+-export([client/4, connect/5, codeswitch/1]).
 
 
 start(Args) ->
@@ -25,7 +25,7 @@ connect(SomeHostInNet, Port, Nick, Channels, Backoff) ->
         restart ->
             {Sleep, NextBackoff} = utils:backoff(Backoff),
             timer:sleep(Sleep),
-            connect(SomeHostInNet, Port, Nick, Channels, NextBackoff);
+            ?MODULE:connect(SomeHostInNet, Port, Nick, Channels, NextBackoff);
         _ ->
             ok
     end.
@@ -46,7 +46,7 @@ registerNick(Sock, Nick) ->
     % on freenode you must fire these very soon after connecting or the server
     % disconnects you
     send_msg(Sock, ["NICK ", Nick]),
-    send_msg(Sock, ["USER ", Nick, " 0 *  : ", ?REALNAME]).
+    send_msg(Sock, ["USER ", Nick, " 8 * :", ?REALNAME]).
 
 % recurses through the list 'Channels' and JOINs each of them
 % no error checking!
@@ -64,8 +64,11 @@ joinChannels(Sock, Channel, Channels) ->
 
 
 send_msg(Sock, Message) ->
-    io:format("OUT: ~ts~n", [Message]), % for debuging only
+    io:format("OUT| ~ts~n", [Message]), % for debuging only
     gen_tcp:send(Sock, [Message, ?CRNL]).
+
+ping(Sock, Server) ->
+    send_msg(Sock, ["PING :", Server]).
 
 % this is the main loop of the process, it will receive data from the socket
 % and also messages from other processes, will loop forever until an unknown
@@ -86,7 +89,7 @@ main_loop(Sock) ->
             quit(Sock),
             restart;
         ping ->
-            send_msg(Sock, "PING :irc.freenode.net"),
+            ping(Sock, "irc.freenode.net"),
             main_loop(Sock);
         % message received from another process
         {Client, send_data, Data} ->
@@ -98,7 +101,7 @@ main_loop(Sock) ->
         % data received from the socket
         {tcp, Sock, Data} ->
             [Line, _] = re:split(Data, "\r\n"), % strip the CRNL at the end
-            io:format(" IN: ~ts~n", [Line]),    % for debuging only
+            io:format(" IN| ~ts~n", [Line]),    % for debuging only
             case handlers:process(Line) of
                 {respond, Response} ->
                     send_msg(Sock, Response);
@@ -117,8 +120,8 @@ main_loop(Sock) ->
         CatchAll ->
             io:format("UNK: ~w~n", [CatchAll]),
             main_loop(Sock)
-    after ?TCPTIMEOUT ->
-        send_msg(Sock, "PING irc.freenode.net"),
+    after ?KEEPALIVE ->
+        ping(Sock, "irc.freenode.net"),
         main_loop(Sock)
     end.
 

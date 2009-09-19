@@ -1,5 +1,6 @@
+-define(VERSION, "erlbot-0.1 - http://damjan.softver.org.mk/git/erlang-irc-bot/").
 -define(REALNAME, "An experimental Erlang IRC bot").
 -define(QUITMSG, "Shutting down the universe...").
 -define(TCPTIMEOUT, 60000). % 1min
+-define(KEEPALIVE, 60000). % 1min
 -define(CRNL, "\r\n").
--define(VERSION, "erlbot-0.1 - http://damjan.softver.org.mk/git/erlang-irc-bot/").

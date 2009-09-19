@@ -10,15 +10,16 @@ Steps:
 . authenticate to nickserv
 + join channel
 + join another channel
-. handle errors, disconnections and reconnections
-. CTCP-PING, CTCP-VERSION
++ handle errors, disconnections and reconnections
++ CTCP-PING, CTCP-VERSION
 . implement a !seen command
 . implement loging to couchdb
-. refactor code in more usefull chunks
+± refactor code in more usefull chunks
 . web interface (Yaws or Mochiweb) for basic status and control
 . improve logging (tags, messages and events separatelly)
 . web interface - implement log view
 . keep track of people entering and leaving a channel (away too?)
+. handle 433 reply (nick not available)
 
 Commands:
 !seen - replies when was someone last seen on the current channel
