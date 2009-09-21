@@ -13,6 +13,7 @@ start(Args) ->
     spawn(?MODULE, client, Args).
 
 client(SomeHostInNet, Port, Nick, Channels) ->
+    handlers:init(),
     connect(SomeHostInNet, Port, Nick, Channels, 1).
 
 connect(SomeHostInNet, Port, Nick, Channels, Backoff) ->
