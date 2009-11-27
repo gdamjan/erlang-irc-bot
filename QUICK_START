@@ -1,0 +1,9 @@
+Use: 
+$ cd src/
+$ erlc *.erl
+$ erl
+1> c(main). 
+{ok,main} 
+2> Pid = main:start(["irc.freenode.net", 6667, "erlbot_test", ["#lugola", "#razmjenavjestina"]]). 
+<0.91.0> 
+3> Pid ! {self(), send_data, "PRIVMSG #lugola :success"}.
