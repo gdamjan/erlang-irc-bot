@@ -6,14 +6,13 @@
 -export([start/1]).
 
 %% exports for use within module only
--export([client/4, connect/5, codeswitch/1]).
+-export([client/4, connect/5, code_switch/2]).
 
 
 start(Args) ->
     spawn(?MODULE, client, Args).
 
 client(SomeHostInNet, Port, Nick, Channels) ->
-    handlers:init(),
     connect(SomeHostInNet, Port, Nick, Channels, 1).
 
 connect(SomeHostInNet, Port, Nick, Channels, Backoff) ->
@@ -22,7 +21,7 @@ connect(SomeHostInNet, Port, Nick, Channels, Backoff) ->
     % neat for the IRC protocol).
     % FIXME: error handling
     {ok, Sock} = login(SomeHostInNet, Port, Nick, Channels),
-    case main_loop(Sock) of
+    case main_loop(Sock, []) of
         restart ->
             {Sleep, NextBackoff} = utils:backoff(Backoff),
             timer:sleep(Sleep),
@@ -74,43 +73,53 @@ ping(Sock, Server) ->
 % this is the main loop of the process, it will receive data from the socket
 % and also messages from other processes, will loop forever until an unknown
 % message is received.
-main_loop(Sock) ->
+main_loop(Sock, Plugins) ->
     receive
-        % When the process receives this message, it will call 'codeswitch/1'
+        % When the process receives this message, it will call 'code_switch/1'
         % from the *latest* MODULE version,
-        % codeswitch/1 just calls main_loop/1 again
+        % code_switch/1 just calls main_loop/1 again
         code_switch ->
-            ?MODULE:codeswitch(Sock);
+            ?MODULE:code_switch(Sock, Plugins);
         quit ->
             io:format("Shuting down. "),
             quit(Sock),
             io:format("Bye.~n"),
             ok;
+
+        {register_plugin, Module, InitArgs} ->
+            {ok, RunArgs} = apply(Module, init, InitArgs),
+            Pid = spawn(Module, run, RunArgs),
+            io:format("Plugin '~s' registered.~n", [Module]),
+            main_loop(Sock, [{Module, Pid} | Plugins]);
+
+        {unregister_plugin, Module} ->
+            case lists:keytake(Module, 1, Plugins) of
+                {value, {Module, Pid}, NewPlugins} ->
+                    exit(Pid, ok),
+                    io:format("Plugin '~s' unregistered.~n", [Module]),
+                    main_loop(Sock, NewPlugins);
+                false ->
+                    main_loop(Sock, Plugins)
+            end;
+
         restart ->
             quit(Sock),
             restart;
         ping ->
-            ping(Sock, "irc.freenode.net"),
-            main_loop(Sock);
+            ping(Sock, "irc.freenode.net"), % FIXME hardcoded server name
+            main_loop(Sock, Plugins);
         % message received from another process
-        {Client, send_data, Data} ->
-            case send_msg(Sock, Data) of
-                ok ->
-                    Client ! {self(), data_sent},
-                    main_loop(Sock)
-            end;
+        {send_data, Data} ->
+            send_msg(Sock, Data),
+            main_loop(Sock, Plugins);
         % data received from the socket
         {tcp, Sock, Data} ->
             [Line, _] = re:split(Data, "\r\n"), % strip the CRNL at the end
             io:format(" IN| ~ts~n", [Line]),    % for debuging only
-            case handlers:process(Line) of
-                {respond, Response} ->
-                    send_msg(Sock, Response);
-                _ ->
-                    ok
-            end,
-            main_loop(Sock);
-        % FIXME: handle errors on the socket
+            IrcMessage = irc:parse(Line),
+            [Pid ! {self(), IrcMessage} || {_, Pid} <- Plugins], % notify all plugins
+            main_loop(Sock, Plugins);
+        % handle errors on the socket
         {tcp_error, Sock, Reason} ->
             io:format("Socket ~w error: ~w [~w]~n", [Sock, Reason, self()]),
             restart;
@@ -120,13 +129,13 @@ main_loop(Sock) ->
         % catch all, log and loop back
         CatchAll ->
             io:format("UNK: ~w~n", [CatchAll]),
-            main_loop(Sock)
+            main_loop(Sock, Plugins)
     after ?KEEPALIVE ->
-        ping(Sock, "irc.freenode.net"),
-        main_loop(Sock)
+        ping(Sock, "irc.freenode.net"),  % FIXME hardcoded server name
+        main_loop(Sock, Plugins)
     end.
 
 % when this function is called Erlang will have the chance to run a new
-% main_loop(Sock) implementation (see: Hot code reloading)
-codeswitch(Sock) ->
-    main_loop(Sock).
+% main_loop(Sock, Plugins) implementation (see: Hot code reloading)
+code_switch(Sock, Plugins) ->
+    main_loop(Sock, Plugins).
