@@ -85,13 +85,18 @@ main_loop(Sock, Plugins) ->
             quit(Sock),
             io:format("Bye.~n"),
             ok;
+        restart ->
+            quit(Sock),
+            restart;
+        ping ->
+            ping(Sock, "irc.freenode.net"), % FIXME hardcoded server name
+            main_loop(Sock, Plugins);
 
         {register_plugin, Module, InitArgs} ->
             {ok, RunArgs} = apply(Module, init, InitArgs),
             Pid = spawn(Module, run, RunArgs),
             io:format("Plugin '~s' registered.~n", [Module]),
             main_loop(Sock, [{Module, Pid} | Plugins]);
-
         {unregister_plugin, Module} ->
             case lists:keytake(Module, 1, Plugins) of
                 {value, {Module, Pid}, NewPlugins} ->
@@ -102,23 +107,18 @@ main_loop(Sock, Plugins) ->
                     main_loop(Sock, Plugins)
             end;
 
-        restart ->
-            quit(Sock),
-            restart;
-        ping ->
-            ping(Sock, "irc.freenode.net"), % FIXME hardcoded server name
-            main_loop(Sock, Plugins);
         % message received from another process
         {send_data, Data} ->
             send_msg(Sock, Data),
             main_loop(Sock, Plugins);
         % data received from the socket
         {tcp, Sock, Data} ->
-            [Line, _] = re:split(Data, "\r\n"), % strip the CRNL at the end
-            io:format(" IN| ~ts~n", [Line]),    % for debuging only
+            [Line|_Tail] = re:split(Data, "\r\n"), % strip the CRNL at the end
+            io:format(" IN| ~ts~n", [Line]),    % for debuging only, dies on leguin.freenode.net
             IrcMessage = irc:parse(Line),
-            [Pid ! {self(), IrcMessage} || {_, Pid} <- Plugins], % notify all plugins
+            [Pid ! {self(), IrcMessage} || {_Name, Pid} <- Plugins], % notify all plugins
             main_loop(Sock, Plugins);
+
         % handle errors on the socket
         {tcp_error, Sock, Reason} ->
             io:format("Socket ~w error: ~w [~w]~n", [Sock, Reason, self()]),
@@ -126,10 +126,12 @@ main_loop(Sock, Plugins) ->
         {tcp_closed, Sock} ->
             io:format("Socket ~w closed [~w]~n", [Sock, self()]),
             restart;
+
         % catch all, log and loop back
         CatchAll ->
             io:format("UNK: ~w~n", [CatchAll]),
             main_loop(Sock, Plugins)
+
     after ?KEEPALIVE ->
         ping(Sock, "irc.freenode.net"),  % FIXME hardcoded server name
         main_loop(Sock, Plugins)
