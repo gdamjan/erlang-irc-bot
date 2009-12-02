@@ -1,18 +1,17 @@
 -module(ctcp_plugin).
+-behaviour(gen_event).
+
 -author("gdamjan@gmail.com").
 -include_lib("common.hrl").
 
--export ([init/1,run/0]).
+-export([init/1, handle_event/2, terminate/2]).
 
 
 init(_Args) ->
     {ok, []}.
 
-run() ->
-    main_loop().
-
-main_loop() ->
-    receive
+handle_event(Msg, State) ->
+    case Msg of
         {Pid, {match, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^AVERSION\^A">>]}} ->
             Pid ! {send_data, ["NOTICE ", Sender, " :\^AVERSION ", ?VERSION, "\^A"]};
         {Pid, {match, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^APING ", Rest/binary>>]}} ->
@@ -20,4 +19,7 @@ main_loop() ->
         _ ->
             ok
     end,
-    main_loop().
+    {ok, State}.
+
+terminate(_Args, _State) ->
+    ok.
