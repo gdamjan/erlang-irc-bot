@@ -66,8 +66,23 @@ joinChannels(Sock, Channel, Channels) ->
 
 
 send_msg(Sock, Message) ->
-    io:format("OUT| ~ts~n", [Message]), % for debuging only
+    debug(out, [Message]), % for debuging only
     gen_tcp:send(Sock, [Message, ?CRNL]).
+
+debug(in, Msg) ->
+    debug([" IN| ", Msg]);
+
+debug(out, Msg) ->
+    debug(["OUT| ", Msg]).
+
+debug(Msg) ->
+    case catch io:format("~ts~n", [Msg]) of
+        {'EXIT', _} ->
+            catch io:format("~s~n", [Msg]),
+            ok;
+        ok ->
+            ok
+    end.
 
 % this is the main loop of the process, it will receive data from the socket
 % and also messages from other processes, will loop forever until an unknown
@@ -98,7 +113,7 @@ main_loop(Sock) ->
         % data received from the socket
         {tcp, Sock, Data} ->
             [Line|_Tail] = re:split(Data, "\r\n"), % strip the CRNL at the end
-            io:format(" IN| ~ts~n", [Line]),    % for debuging only, dies on leguin.freenode.net
+            debug(in, [Line]),    % for debuging only, dies on leguin.freenode.net
             IrcMessage = irc:parse(Line),
             gen_event:notify(plugins, {self(), IrcMessage}), % notify all plugins
             main_loop(Sock);
