@@ -6,8 +6,6 @@ l(main).
 Pid = main:start(["irc.freenode.net", 6667, "erlbot_test", ["#lugola", "#razmjenavjestina"]]). 
 Pid ! {send_data, "PRIVMSG #lugola :success"}.
 
-l(pong_plugin).
-gen_event:add_handler(plugins, pong_plugin, []).
 
 l(ctcp_plugin).
 gen_event:add_handler(plugins, ctcp_plugin, []).

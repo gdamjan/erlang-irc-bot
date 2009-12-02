@@ -11,6 +11,7 @@
 
 start(Args) ->
     gen_event:start({local, plugins}),
+    gen_event:add_handler(plugins, pong_plugin, []), 
     spawn(?MODULE, client, Args).
 
 client(SomeHostInNet, Port, Nick, Channels) ->
@@ -68,9 +69,6 @@ send_msg(Sock, Message) ->
     io:format("OUT| ~ts~n", [Message]), % for debuging only
     gen_tcp:send(Sock, [Message, ?CRNL]).
 
-ping(Sock, Server) ->
-    send_msg(Sock, ["PING :", Server]).
-
 % this is the main loop of the process, it will receive data from the socket
 % and also messages from other processes, will loop forever until an unknown
 % message is received.
@@ -90,7 +88,7 @@ main_loop(Sock) ->
             quit(Sock),
             restart;
         ping ->
-            ping(Sock, "irc.freenode.net"), % FIXME hardcoded server name
+            gen_event:notify(plugins, {self(), keepalive}),
             main_loop(Sock);
 
         % message received from another process
@@ -119,7 +117,7 @@ main_loop(Sock) ->
             main_loop(Sock)
 
     after ?KEEPALIVE ->
-        ping(Sock, "irc.freenode.net"),  % FIXME hardcoded server name
+        gen_event:notify(plugins, {self(), keepalive}),
         main_loop(Sock)
     end.
 
