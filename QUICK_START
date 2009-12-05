@@ -1,11 +1,17 @@
 Use: 
 $ cd src/
 $ erlc *.erl
+$ ( cd plugins && erlc *.erl )
 $ erl
+
 l(main). 
 Pid = main:start(["irc.freenode.net", 6667, "erlbot_test", ["#lugola", "#razmjenavjestina"]]). 
 Pid ! {send_data, "PRIVMSG #lugola :success"}.
 
-
+% Load the CTCP plugin (responds to CTCP pings and CTCP version)
 l(ctcp_plugin).
 gen_event:add_handler(plugins, ctcp_plugin, []).
+
+% To load the web page title extractor plugin
+l('plugins.title').
+gen_event:add_handler(plugins, 'plugins.title', []).
