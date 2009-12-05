@@ -65,19 +65,10 @@ send_msg(Sock, Message) ->
     gen_tcp:send(Sock, [Message, ?CRNL]).
 
 debug(in, Msg) ->
-    debug([" IN| ", Msg]);
+    utils:debug([" IN| ", Msg]);
 
 debug(out, Msg) ->
-    debug(["OUT| ", Msg]).
-
-debug(Msg) ->
-    case catch io:format("~ts~n", [Msg]) of
-        {'EXIT', _} ->
-            catch io:format("~s~n", [Msg]),
-            ok;
-        ok ->
-            ok
-    end.
+    utils:debug(["OUT| ", Msg]).
 
 % this is the main loop of the process, it will receive data from the socket
 % and also messages from other processes, will loop forever until an unknown
