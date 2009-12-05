@@ -52,17 +52,12 @@ registerNick(Sock, Nick) ->
 
 % recurses through the list 'Channels' and JOINs each of them
 % no error checking!
-joinChannels(Sock, Channels) ->
-    [ Channel| Rest ] = Channels,
-    joinChannels(Sock, Channel, Rest).
+joinChannels(_Sock, []) ->
+    ok;
 
-joinChannels(Sock, Channel, []) ->
-    send_msg(Sock, ["JOIN ", Channel]);
-
-joinChannels(Sock, Channel, Channels) ->
-    joinChannels(Sock, Channel, []),
-    [ Channel_| Rest ] = Channels,
-    joinChannels(Sock, Channel_, Rest).
+joinChannels(Sock, [ C | Rest ]) ->
+    send_msg(Sock, ["JOIN ", C]),
+    joinChannels(Sock, Rest).
 
 
 send_msg(Sock, Message) ->
