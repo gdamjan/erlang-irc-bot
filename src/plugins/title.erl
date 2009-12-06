@@ -43,15 +43,17 @@ handle_event(Msg, State) ->
 terminate(_Args, _State) ->
     ok.
 
-sanitize_url(Url) ->
-    Url1 = erlang:binary_to_list(Url),
-    case lists:prefix("http://", Url1) of
-        true -> Url1;
-        false -> lists:append("http://", Url1)
+sanitize_url(Url) when is_binary(Url) ->
+    sanitize_url(erlang:binary_to_list(Url));
+
+sanitize_url(Url) when is_list(Url) ->
+    case lists:prefix("http://", Url) of
+        true -> Url;
+        false -> lists:append("http://", Url)
     end.
-    
-    
+
 getter(Url, Pid, Channel) ->
     {ok, {_Status, _Headers, Body}} = http:request(sanitize_url(Url)),
-    {match, [Title]} = re:run(Body, "<title.*>([\\s\\S]*)</title>", [caseless, {capture, [1], binary}]),  
-    Pid ! {send_data, ["PRIVMSG ", Channel, " :", Title]}.
+    {match, [Title]} = re:run(Body, "<title.*>([\\s\\S]*)</title>", [caseless, {capture, [1], binary}]),
+    NewTitle = re:replace(Title, "\\s+", " ", [global]),
+    Pid ! {send_data, ["PRIVMSG ", Channel, " :", NewTitle]}.
