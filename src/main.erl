@@ -100,7 +100,7 @@ main_loop(Sock) ->
         {tcp, Sock, Data} ->
             [Line|_Tail] = re:split(Data, "\r\n"), % strip the CRNL at the end
             debug(in, [Line]),    % for debuging only, dies on leguin.freenode.net
-            IrcMessage = irc:parse(Line),
+            IrcMessage = utils:irc_parse(Line),
             gen_event:notify(plugins, {self(), IrcMessage}), % notify all plugins
             main_loop(Sock);
 
