@@ -32,9 +32,9 @@ connect(SomeHostInNet, Port, Nick, Channels, Backoff) ->
             ok
     end.
 
-login(SomeHostInNet, Port, Nick, Channels) ->
-    {ok, Sock} = gen_tcp:connect(SomeHostInNet, Port,
-                    [inet6, binary, {active, true}, {packet, line}], ?TCPTIMEOUT),
+login(Host, Port, Nick, Channels) ->
+    {ok, Sock} = gen_tcp:connect(Host, Port,
+                    [binary, {active, true}, {packet, line}], ?TCPTIMEOUT),
     registerNick(Sock, Nick),
     joinChannels(Sock, Channels),
     {ok, Sock}.
