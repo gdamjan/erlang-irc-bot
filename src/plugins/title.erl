@@ -3,12 +3,17 @@
 
 -author("gdamjan@gmail.com").
 
--import(http).
+-export([init/1, handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
+-export([getter/3]).
+
+-import(utils).
+
 -import(re).
 -import(lists).
 -import(dict).
 -import(inets).
--export([init/1, handle_event/2, terminate/2, getter/3]).
+-import(http).
+
 
 
 init(_Args) ->
@@ -30,7 +35,7 @@ handle_event(Msg, State) ->
                     {ok, State}
             end;
         {_Pid, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, Text]}} ->
-            case re:run(Text, "\\b((http://|www\\.)[\\S]*)\\b", [caseless, {capture, [1], binary}]) of
+            case re:run(Text, "\\b((https?://|www\\.)[\\S]*)\\b", [caseless, {capture, [1], binary}]) of
                 {match, [Url]} ->
                     {ok, dict:store(Channel, Url, State)};
                 _ ->
@@ -40,8 +45,12 @@ handle_event(Msg, State) ->
             {ok, State}
     end.
 
-terminate(_Args, _State) ->
-    ok.
+handle_call(_Request, State) -> {ok, ok, State}.
+handle_info(_Info, State) -> {ok, State}.
+code_change(_OldVsn, State, _Extra) -> {ok, State}.
+terminate(_Args, _State) -> ok.
+
+
 
 sanitize_url(Url) when is_binary(Url) ->
     sanitize_url(erlang:binary_to_list(Url));
@@ -52,6 +61,8 @@ sanitize_url(Url) when is_list(Url) ->
         false -> lists:append("http://", Url)
     end.
 
+
+%% this gets spawned as a separate process
 getter(Url, Pid, Channel) ->
     {ok, {_Status, _Headers, Body}} = http:request(sanitize_url(Url)),
     {match, [Title]} = re:run(Body, "<title.*>([\\s\\S]*)</title>", [caseless, {capture, [1], binary}]),

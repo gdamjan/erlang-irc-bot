@@ -6,15 +6,15 @@
 -export([start/1]).
 
 %% exports for use within module only
--export([client/4, connect/5, code_switch/1]).
+-export([connect/4, connect/5, code_switch/1]).
 
 
 start(Args) ->
     gen_event:start({local, plugins}),
     gen_event:add_handler(plugins, pong_plugin, []), 
-    spawn(?MODULE, client, Args).
+    spawn(?MODULE, connect, Args).
 
-client(SomeHostInNet, Port, Nick, Channels) ->
+connect(SomeHostInNet, Port, Nick, Channels) ->
     connect(SomeHostInNet, Port, Nick, Channels, 1).
 
 connect(SomeHostInNet, Port, Nick, Channels, Backoff) ->
@@ -34,7 +34,7 @@ connect(SomeHostInNet, Port, Nick, Channels, Backoff) ->
 
 login(SomeHostInNet, Port, Nick, Channels) ->
     {ok, Sock} = gen_tcp:connect(SomeHostInNet, Port,
-                    [binary, {active, true}, {packet, line}], ?TCPTIMEOUT),
+                    [inet6, binary, {active, true}, {packet, line}], ?TCPTIMEOUT),
     registerNick(Sock, Nick),
     joinChannels(Sock, Channels),
     {ok, Sock}.
