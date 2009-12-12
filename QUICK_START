@@ -1,8 +1,6 @@
 Use: 
-$ cd src/
-$ erlc *.erl
-$ ( cd plugins && erlc *.erl )
-$ erl
+$ make
+$ make run
 
 l(main). 
 Pid = main:start(["irc.freenode.net", 6667, "erlbot_test", ["#lugola", "#razmjenavjestina"]]). 
