@@ -12,6 +12,7 @@
 start(Args) ->
     gen_event:start({local, plugins}),
     gen_event:add_handler(plugins, pong_plugin, []), 
+    gen_event:add_handler(plugins, ctcp_plugin, []), 
     spawn(?MODULE, connect, Args).
 
 connect(SomeHostInNet, Port, Nick, Channels) ->
