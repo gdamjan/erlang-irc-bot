@@ -1,3 +1,5 @@
+.SUFFIXES: .erl .beam .yrl
+
 ERL_SRC := $(wildcard src/*.erl)
 ERL_OBJ := $(patsubst src/%.erl,ebin/%.beam,${ERL_SRC})
 
@@ -7,21 +9,21 @@ PLUGINS_OBJ := $(patsubst src/plugins/%.erl,ebin/plugins/%.beam,${PLUGINS_SRC})
 
 all: main plugins
 
-main: ${ERL_OBJ}
+ebin:
+	@mkdir -p ebin
+ebin/plugins:
+	@mkdir -p ebin/plugins
 
-plugins: ${PLUGINS_OBJ}
+main: ebin ${ERL_OBJ}
+plugins: ebin/plugins ${PLUGINS_OBJ}
+
 
 ebin/%.beam: src/%.erl
-	@mkdir -p ebin
-	erlc -o ebin $<
-
-ebin/plugins/%.beam: src/plugins/%.erl
-	@mkdir -p ebin/plugins
-	erlc -o ebin/plugins $<
+	erlc -o `dirname $@` $<
 
 
 clean:
-	rm -f ebin/*.beam ebin/plugin/*.beam
+	rm -rf ebin/
 	rm -f erl_crash.dump
 
 
