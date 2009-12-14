@@ -21,6 +21,12 @@ handle_event(Msg, State) ->
        {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!scissors">>]}} ->
             Pid ! {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(scissors)]},
             {ok, State};
+       {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!spock">>]}} ->
+            Pid ! {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(spock)]},
+            {ok, State};
+       {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!lizard">>]}} ->
+            Pid ! {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(lizard)]},
+            {ok, State};
         _ ->
             {ok, State}
     end.
@@ -46,16 +52,23 @@ play(PlayerAttack) ->
 %% choose a computer attack at random 
 get_computer_attack() ->  
     %% Get an index position at random 
-    Index = random:uniform(3), 
+    Index = random:uniform(5), 
     %% Pull out an attack
-    lists:nth(Index, [rock, paper, scissors]). 
+    lists:nth(Index, [rock, paper, scissors, spock, lizard]). 
 
 %% Determine the result of an attack
-get_result(Player1, Player2) -> 
-    case {Player1, Player2} of 
-        {rock, scissors} -> win; 
-        {paper, rock} -> win; 
-        {scissors, paper} -> win; 
-        {Same, Same} -> draw; 
-        {_,_} -> lose 
+get_result(Player1, Player2) ->
+    case {Player1, Player2} of
+        {rock, scissors} -> win;
+        {rock, lizard} -> win;
+        {paper, rock} -> win;
+        {paper, spock} -> win;
+        {scissors, paper} -> win;
+        {scissors, lizard} -> win;
+        {spock, rock} -> win;
+        {spock, scissors} -> win;
+        {lizard, spock} -> win;
+        {lizard, paper} -> win;
+        {Same, Same} -> draw;
+        {_,_} -> lose
     end.
