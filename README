@@ -1,39 +1,21 @@
-Starting to learn Erlang
-========================
+An extendable ircbot written in Erlang
+======================================
 
-My idea is to create an irc bot written in erlang for the
-purpose of learning erlang first, and then to use it on 
-different irc channels.
+It all started when I decided I need to learn Erlang. At the same time I needed
+a simple ircbot to handle some of the channels I frequent on. These two things
+put together and I decided to start this project.
 
-Steps:
-+ connect to the irc server
-. authenticate to nickserv
-+ join channel
-+ join another channel
-+ handle errors, disconnections and reconnections
-+ CTCP-PING, CTCP-VERSION
-. implement a !seen command
-. implement loging to couchdb
-± refactor code in more usefull chunks
-. web interface (Yaws or Mochiweb) for basic status and control
-. improve logging (tags, messages and events separatelly)
-. web interface - implement log view
-. keep track of people entering and leaving a channel (away too?)
-. handle 433 reply (nick not available)
+The evolution of my knowledge can be best seen from the history of the git
+commits (see: http://github.com/gdamjan/erlang-irc-bot/commits/master).
 
-Commands:
-!seen - replies when was someone last seen on the current channel
-!tell - tell someone something when he appears online (or is not away any more)
-!go - google search, feeling lucky, return title of result
-!wiki - wikipedia == || ==
-!info - information about the bot: mem usage, uptime, channels, os type and version
-help -> Hello, this is...
-???
+Now that the bot is extendable by plugins, and quite stable it's becoming prety
+usefull. It still needs improvements and is work in progress, but plugins can
+be written for anything.
 
-Database:
-  {Nick, Channel} -> Status
 
-  Status is:
-    {present, LastActivity} -> from JOIN,PRIVMSG
-    {away,    LastActivity} -> AWAY plus -^
-    {notpresent, LastPresent, Message} -> from QUIT
+Patches, help and feature requests can be sent on the github issue tracker.
+There's a TODO list I keep there too.
+
+
+The bot is MIT licensed (for no particular reason), it's a very liberal license
+with no strings, so you can really do whatever you want with it.
