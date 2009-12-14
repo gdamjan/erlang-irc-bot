@@ -1,6 +1,6 @@
--module(main).
+-module(ircbot_main).
 -author('gdamjan@gmail.com').
--include_lib("common.hrl").
+-include_lib("ircbot.hrl").
 
 %% user interface
 -export([start/1]).

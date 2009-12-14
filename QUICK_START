@@ -2,9 +2,9 @@ Use:
 $ make
 $ make run
 
-l(main). 
-Pid = main:start(["irc.freenode.net", 6667, "erlbot_test", ["#lugola", "#razmjenavjestina"]]). 
-Pid ! {send_data, "PRIVMSG #lugola :success"}.
+l(ircbot_main). 
+Pid = ircbot_main:start(["irc.freenode.net", 6667, "erlbot_test", ["#erlbot_test"]]). 
+Pid ! {send_data, "PRIVMSG #erlbot_test :success"}.
 
 % Load the CTCP plugin (responds to CTCP pings and CTCP version)
 l(ctcp_plugin).
