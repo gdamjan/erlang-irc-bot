@@ -1,15 +1,26 @@
-Use: 
-$ make
-$ make run-shell
+Quick start to using the ircbot
+===============================
 
-l(ircbot_main). 
-Pid = ircbot_main:start(["irc.freenode.net", 6667, "erlbot_test", ["#erlbot_test"]]). 
-Pid ! {send_data, "PRIVMSG #erlbot_test :success"}.
+To compile everything run:
 
-% Load the CTCP plugin (responds to CTCP pings and CTCP version)
-l(ctcp_plugin).
-gen_event:add_handler(plugins, ctcp_plugin, []).
+ make
 
-% To load the web page title extractor plugin
-l('plugins.title').
-gen_event:add_handler(plugins, 'plugins.title', []).
+Then to start an Erlang REPL shell, with the path set to the .beam files, run:
+
+ make run-shell
+
+Once in the Erlang REPL you can start the bot with:
+
+ Pid = ircbot_main:start(["irc.freenode.net", 6667, "erlbot_test", ["#erlbot_test"]]). 
+ Pid ! {send_data, "PRIVMSG #erlbot_test :success"}.
+ % To load some plugins
+ gen_event:add_handler(plugins, 'plugins.rps', []).
+ gen_event:add_handler(plugins, 'plugins.tell', []).
+
+If you make changes to some plugin, while the bot is still running, just 
+hit "make" again (in another terminal) and then back in the erlang REPL run:
+
+ l('plugins.rps').
+
+Erlangs code switching and gen_event framework will handle all the details to
+run the new code without even disconnecting.
