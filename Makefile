@@ -1,13 +1,30 @@
-all: compile
+ERL_SRC := $(wildcard src/*.erl)
+ERL_OBJ := $(patsubst src/%.erl,ebin/%.beam,${ERL_SRC})
 
-compile:
-	mkdir -p ebin/plugins
-	for i in src/*.erl; do erlc -o ./ebin $$i; done
-	for i in src/plugins/*.erl; do erlc -o ./ebin/plugins $$i; done
+PLUGINS_SRC := $(wildcard src/plugins/*.erl)
+PLUGINS_OBJ := $(patsubst src/plugins/%.erl,ebin/plugins/%.beam,${PLUGINS_SRC})
+
+
+all: main plugins
+
+main: ${ERL_OBJ}
+
+plugins: ${PLUGINS_OBJ}
+
+ebin/%.beam: src/%.erl
+	@mkdir -p ebin
+	erlc -o ebin $<
+
+ebin/plugins/%.beam: src/plugins/%.erl
+	@mkdir -p ebin/plugins
+	erlc -o ebin/plugins $<
+
 
 clean:
 	rm -f ebin/*.beam ebin/plugin/*.beam
 	rm -f erl_crash.dump
 
-run:
-	erl -sname ircbot -pa ./ebin
+
+
+run-shell:
+	@erl -sname ircbot -pa ./ebin

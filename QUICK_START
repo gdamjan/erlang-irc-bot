@@ -1,6 +1,6 @@
 Use: 
 $ make
-$ make run
+$ make run-shell
 
 l(ircbot_main). 
 Pid = ircbot_main:start(["irc.freenode.net", 6667, "erlbot_test", ["#erlbot_test"]]). 
