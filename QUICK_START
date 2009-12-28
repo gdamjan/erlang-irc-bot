@@ -11,7 +11,7 @@ Then to start an Erlang REPL shell, with the path set to the .beam files, run:
 
 Once in the Erlang REPL you can start the bot with:
     
-    {ok, IrcBot} = ircbot:start_link("settings.cfg").
+    {ok, IrcBot} = ircbot_server:start_link("settings.cfg").
     gen_server:call(IrcBot, connect).
     gen_server:call(IrcBot, {add_plugin, 'plugins.rps', []}).
 
