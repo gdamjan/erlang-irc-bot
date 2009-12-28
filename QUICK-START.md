@@ -5,9 +5,14 @@ To compile everything run:
 
     make
 
-Then to start an Erlang REPL shell, with the path set to the .beam files, run:
+Edit and rename the settings.cfg.sample file (to settings.cfg), then start 
+an Erlang REPL shell, with the path set to the .beam files:
 
     make run-shell
+
+or
+
+    erl -pa ./ebin
 
 Once in the Erlang REPL you can start the bot with:
     

@@ -5,8 +5,10 @@ It all started when I decided I need to learn Erlang. At the same time I needed
 a simple ircbot to handle some of the channels I frequent on. These two things
 put together and I decided to start this project.
 
-The evolution of my knowledge can be best seen from the history of the git
-commits (see: http://github.com/gdamjan/erlang-irc-bot/commits/master).
+The evolution of my knowledge can be best seen from the history of the [git
+commits][commits].
+
+[commits]: http://github.com/gdamjan/erlang-irc-bot/commits/master
 
 Now that the bot is extendable by plugins, and quite stable it's becoming prety
 usefull. It still needs improvements and is work in progress, but plugins can
