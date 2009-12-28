@@ -1,21 +1,21 @@
 .SUFFIXES: .erl .beam .yrl
 
 ERL_SRC := $(wildcard src/*.erl)
-ERL_OBJ := $(patsubst src/%.erl,ebin/%.beam,${ERL_SRC})
+ERL_OBJ := $(ERL_SRC:src/%.erl=ebin/%.beam)
 
 PLUGINS_SRC := $(wildcard src/plugins/*.erl)
-PLUGINS_OBJ := $(patsubst src/plugins/%.erl,ebin/plugins/%.beam,${PLUGINS_SRC})
+PLUGINS_OBJ := $(PLUGINS_SRC:src/plugins/%.erl=ebin/plugins/%.beam)
 
 
 all: main plugins
+main: ebin/ ${ERL_OBJ}
+plugins: ebin/plugins/ ${PLUGINS_OBJ}
 
-ebin:
+
+ebin/:
 	@mkdir -p ebin
-ebin/plugins:
+ebin/plugins/:
 	@mkdir -p ebin/plugins
-
-main: ebin ${ERL_OBJ}
-plugins: ebin/plugins ${PLUGINS_OBJ}
 
 
 ebin/%.beam: src/%.erl
