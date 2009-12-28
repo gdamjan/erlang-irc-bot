@@ -1,12 +1,13 @@
 -module(plugins.tell).
--behaviour(gen_event).
-
 -author("gdamjan@gmail.com").
+
+-behaviour(gen_event).
 -export([init/1, handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
 
 -import(re).
 -import(dict).
 -import(lists).
+-import(gen_server).
 
 init(_Args) ->
     {ok, dict:new()}.
@@ -18,7 +19,7 @@ fancy_time(T) ->
 remember(Pid, Channel, From, Msg, State) ->
     Timestamp = 1,
     [Recepient | Message] = re:split(Msg, " ", [{parts,2}]),
-    Pid ! {send_data, ["NOTICE ", From, " :ok, I'll  pass that to ", Recepient]},
+    gen_server:cast(Pid, {send_data, ["NOTICE ", From, " :ok, I'll  pass that to ", Recepient]}),
     {ok, dict:append(Recepient, {Timestamp, Channel, From, Message}, State)}.
 
 reminder(Pid, Nick, State) ->
@@ -26,8 +27,8 @@ reminder(Pid, Nick, State) ->
         true ->
             L = dict:fetch(Nick, State),
             lists:foreach(fun ({Timestamp, Channel, From, Message}) ->
-    		Msg =  [fancy_time(Timestamp), " ", From, " on ", Channel, ": ", Message],
-    		Pid ! {send_data, ["NOTICE ", Nick, " :", Msg]} end, L),
+                Msg =  [fancy_time(Timestamp), " ", From, " on ", Channel, ": ", Message],
+                gen_server:cast(Pid, {send_data, ["NOTICE ", Nick, " :", Msg]}) end, L),
             {ok, dict:erase(Nick, State)};
         false ->
             {ok, State}

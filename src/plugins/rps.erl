@@ -1,11 +1,12 @@
 -module(plugins.rps).
--behaviour(gen_event).
-
 -author("gdamjan@gmail.com").
--import(lists).
--import(random).
+
+-behaviour(gen_event).
 -export([init/1, handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
 
+-import(lists).
+-import(random).
+-import(gen_server).
 
 init(_Args) ->
     {ok, []}.
@@ -13,19 +14,19 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
        {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!rock">>]}} ->
-            Pid ! {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(rock)]},
+            gen_server:cast(Pid, {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(rock)]}),
             {ok, State};
        {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!paper">>]}} ->
-            Pid ! {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(paper)]},
+            gen_server:cast(Pid, {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(paper)]}),
             {ok, State};
        {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!scissors">>]}} ->
-            Pid ! {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(scissors)]},
+            gen_server:cast(Pid, {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(scissors)]}),
             {ok, State};
        {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!spock">>]}} ->
-            Pid ! {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(spock)]},
+            gen_server:cast(Pid, {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(spock)]}),
             {ok, State};
        {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!lizard">>]}} ->
-            Pid ! {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(lizard)]},
+            gen_server:cast(Pid, {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(lizard)]}),
             {ok, State};
         _ ->
             {ok, State}

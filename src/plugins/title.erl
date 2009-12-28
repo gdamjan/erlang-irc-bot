@@ -1,8 +1,7 @@
 -module(plugins.title).
--behaviour(gen_event).
-
 -author("gdamjan@gmail.com").
 
+-behaviour(gen_event).
 -export([init/1, handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
 -export([getter/3]).
 
@@ -13,6 +12,7 @@
 -import(dict).
 -import(inets).
 -import(http).
+-import(gen_server).
 
 
 
@@ -67,4 +67,4 @@ getter(Url, Pid, Channel) ->
     {ok, {_Status, _Headers, Body}} = http:request(sanitize_url(Url)),
     {match, [Title]} = re:run(Body, "<title.*>([\\s\\S]*)</title>", [caseless, {capture, [1], binary}]),
     NewTitle = re:replace(Title, "\\s+", " ", [global]),
-    Pid ! {send_data, ["PRIVMSG ", Channel, " :", NewTitle]}.
+    gen_server:cast(Pid,{send_data, ["PRIVMSG ", Channel, " :", NewTitle]}).

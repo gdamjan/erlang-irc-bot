@@ -14,10 +14,10 @@ handle_event(Msg, State) ->
         {_Pid, {match, [Server, _, <<"001">>, _Nick, _]}} ->
             {ok, Server};
         {Pid, {match, [<<>>,<<>>,<<"PING">>, Server]}} ->
-            Pid ! {send_data, [<<"PONG :">>, Server]},
+            gen_server:cast(Pid, {send_data, [<<"PONG :">>, Server]}),
             {ok, Server};
         {Pid, keepalive} ->
-            Pid ! {send_data, ["PING :", State]},
+            gen_server:cast(Pid, {send_data, ["PING :", State]}),
             {ok, State};
         _ ->
             {ok, State}
