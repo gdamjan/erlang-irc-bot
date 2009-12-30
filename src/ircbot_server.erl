@@ -15,8 +15,7 @@
          terminate/2, code_change/3]).
 
 
-start_link(Filename) ->
-    {ok, Settings} = file:consult(Filename),
+start_link(Settings) ->
     gen_server:start_link(?MODULE, Settings, []).
 
 
@@ -38,9 +37,9 @@ init_plugins(Settings) ->
     gen_event:add_handler(Plugins, pong_plugin, []),
     gen_event:add_handler(Plugins, ctcp_plugin, []),
     lists:foreach(
-        fun ({Plugin, Args}) -> 
+        fun ({Plugin, Args}) ->
             gen_event:add_handler(Plugins, Plugin, Args)
-        end, 
+        end,
         proplists:get_value(plugins, Settings, [])
     ),
     {ok, Plugins}.
@@ -53,9 +52,9 @@ handle_call(connect, _From, {State, Config}) ->
     send_msg(Sock, ["NICK ", Config#config.nickname]),
     send_msg(Sock, ["USER ", Config#config.nickname, " 8 * :", ?REALNAME]),
     lists:foreach(
-        fun (Ch) -> 
-            send_msg(Sock, ["JOIN ", Ch]) 
-        end, 
+        fun (Ch) ->
+            send_msg(Sock, ["JOIN ", Ch])
+        end,
         Config#config.channels
     ),
     {reply, ok, {State#state{sock=Sock}, Config}};
@@ -70,7 +69,7 @@ handle_cast({send_data, Data}, {State, Config}) ->
 
 
 %% handle socket data
-handle_info({tcp, _Sock, Data}, {State, Config}) -> 
+handle_info({tcp, _Sock, Data}, {State, Config}) ->
     [Line|_Tail] = re:split(Data, "\r\n"), % strip the CRNL at the end
     debug(in, [Line]),    % for debuging only
     IrcMessage = utils:irc_parse(Line),

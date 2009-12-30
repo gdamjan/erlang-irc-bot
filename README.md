@@ -41,7 +41,8 @@ or
 
 Once in the Erlang REPL you can start the bot with:
     
-    {ok, IrcBot} = ircbot_server:start_link("settings.cfg").
+    {ok, Settings} = file:consult("settings.cfg").
+    {ok, IrcBot} = ircbot_server:start_link(Settings).
     gen_server:call(IrcBot, connect).
     gen_server:call(IrcBot, {add_plugin, 'plugins.rps', []}).
 
