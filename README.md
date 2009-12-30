@@ -23,15 +23,16 @@ The bot is MIT licensed (for no particular reason), it's a very liberal license
 with no strings, so you can really do whatever you want with it.
 
 
-Quick start to using the ircbot
-===============================
+Quick start
+-----------
 
-To compile everything run:
+First, compile everything:
 
     make
 
 Edit and rename the settings.cfg.sample file (to settings.cfg), then start 
-an Erlang REPL shell, with the path set to the .beam files:
+an Erlang REPL shell. Make sure the module path is set to the ./ebin/
+directory, where all the compiled .beam files are:
 
     make run-shell
 
@@ -55,5 +56,7 @@ or
 
     l(ircbot_server).
 
-Erlangs code switching and gen_event framework will handle all the details to
-run the new code without even disconnecting.
+Erlangs [code switching][code switching] and the gen_server/gen_event frameworks 
+will handle all the details to run the new code without even disconnecting.
+
+[code switching]: http://en.wikipedia.org/wiki/Erlang_%28programming_language%29#Hot_code_loading_and_modules
