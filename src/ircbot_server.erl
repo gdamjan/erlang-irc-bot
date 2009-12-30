@@ -4,7 +4,7 @@
 
 -include_lib("ircbot.hrl").
 -record(config, {nickname, server, channels}).
--record(state, {sock, plugin_mgr, config}).
+-record(state, {sock, plugin_mgr}).
 
 
 %% API
@@ -24,7 +24,8 @@ start_link(Settings) ->
 init(Settings) ->
     Config = get_config(Settings),
     {ok, Plugins} = init_plugins(Settings),
-    {ok, {#state{plugin_mgr=Plugins}, Config}}.
+    State = #state{sock=none, plugin_mgr=Plugins},
+    {ok, {State, Config}}.
 
 get_config(Settings) ->
     Nick = proplists:get_value(nickname, Settings),
@@ -58,6 +59,12 @@ handle_call(connect, _From, {State, Config}) ->
         Config#config.channels
     ),
     {reply, ok, {State#state{sock=Sock}, Config}};
+
+handle_call(disconnect, _From, {State, Config}) ->
+    Sock = State#state.sock,
+    send_msg(Sock, ["QUIT :", ?QUITMSG]),
+    gen_tcp:close(Sock),
+    {reply, ok, {State#state{sock=none}, Config}};
 
 handle_call({add_plugin, Plugin, Args},  _From, {State, Config}) ->
     gen_event:add_handler(State#state.plugin_mgr, Plugin, Args),
