@@ -30,15 +30,15 @@ First, compile everything:
 
     make
 
-Edit and rename the settings.cfg.sample file (to settings.cfg), then start 
+Second, edit and rename the settings.cfg.sample file (to settings.cfg). Then start 
 an Erlang REPL shell. Make sure the module path is set to the ./ebin/
 directory, where all the compiled .beam files are:
 
-    make run-shell
-
-or
-
     erl -pa ./ebin
+
+or simply:
+
+    make run-shell
 
 Once in the Erlang REPL you can start the bot with:
     
@@ -60,3 +60,17 @@ Erlangs [code switching][code switching] and the gen_server/gen_event frameworks
 will handle all the details to run the new code without even disconnecting.
 
 [code switching]: http://en.wikipedia.org/wiki/Erlang_%28programming_language%29#Hot_code_loading_and_modules
+
+Experimental OOP API
+--------------------
+
+Using the parameterized module support in Erlang we can do something like this
+too:
+
+    {ok, Settings} = file:consult("settings.cfg").
+    IrcBot = ircbot_server:new(Settings).
+    IrcBot:connect().
+    IrcBot:add_plugin(plugins.rps, []).
+
+I'm yet to decide if it's smart to do this, since this feature is considered
+experimental in Erlang.
