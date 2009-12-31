@@ -12,7 +12,6 @@
 -import(dict).
 -import(inets).
 -import(http).
--import(gen_server).
 
 
 
@@ -22,19 +21,19 @@ init(_Args) ->
 
 handle_event(Msg, State) ->
     case Msg of
-        {Pid, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title ", Url/binary>>]}} ->
-            spawn(?MODULE, getter, [Url, Pid, Channel]),
+        {Ref, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title ", Url/binary>>]}} ->
+            spawn(?MODULE, getter, [Url, Ref, Channel]),
             {ok, State};
-        {Pid, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title">>]}} ->
+        {Ref, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title">>]}} ->
             case dict:is_key(Channel, State) of
                 true -> 
                     Url = dict:fetch(Channel, State),
-                    spawn(?MODULE, getter, [Url, Pid, Channel]),
+                    spawn(?MODULE, getter, [Url, Ref, Channel]),
                     {ok, dict:erase(Channel, State)};
                 false ->
                     {ok, State}
             end;
-        {_Pid, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, Text]}} ->
+        {_Ref, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, Text]}} ->
             case re:run(Text, "\\b((https?://|www\\.)[\\S]*)\\b", [caseless, {capture, [1], binary}]) of
                 {match, [Url]} ->
                     {ok, dict:store(Channel, Url, State)};
@@ -63,8 +62,8 @@ sanitize_url(Url) when is_list(Url) ->
 
 
 %% this gets spawned as a separate process
-getter(Url, Pid, Channel) ->
+getter(Url, Ref, Channel) ->
     {ok, {_Status, _Headers, Body}} = http:request(sanitize_url(Url)),
     {match, [Title]} = re:run(Body, "<title.*>([\\s\\S]*)</title>", [caseless, {capture, [1], binary}]),
     NewTitle = re:replace(Title, "\\s+", " ", [global]),
-    gen_server:cast(Pid,{send_data, ["PRIVMSG ", Channel, " :", NewTitle]}).
+    Ref:send_data(["PRIVMSG ", Channel, " :", NewTitle]).

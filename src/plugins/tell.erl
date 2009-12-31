@@ -7,7 +7,6 @@
 -import(re).
 -import(dict).
 -import(lists).
--import(gen_server).
 
 init(_Args) ->
     {ok, dict:new()}.
@@ -16,19 +15,19 @@ init(_Args) ->
 fancy_time(T) ->
     "{time}".
 
-remember(Pid, Channel, From, Msg, State) ->
+remember(Ref, Channel, From, Msg, State) ->
     Timestamp = 1,
     [Recepient | Message] = re:split(Msg, " ", [{parts,2}]),
-    gen_server:cast(Pid, {send_data, ["NOTICE ", From, " :ok, I'll  pass that to ", Recepient]}),
+    Ref:send_data(["NOTICE ", From, " :ok, I'll  pass that to ", Recepient]),
     {ok, dict:append(Recepient, {Timestamp, Channel, From, Message}, State)}.
 
-reminder(Pid, Nick, State) ->
+reminder(Ref, Nick, State) ->
     case dict:is_key(Nick, State) of
         true ->
             L = dict:fetch(Nick, State),
             lists:foreach(fun ({Timestamp, Channel, From, Message}) ->
                 Msg =  [fancy_time(Timestamp), " ", From, " on ", Channel, ": ", Message],
-                gen_server:cast(Pid, {send_data, ["NOTICE ", Nick, " :", Msg]}) end, L),
+                Ref:send_data(["NOTICE ", Nick, " :", Msg]) end, L),
             {ok, dict:erase(Nick, State)};
         false ->
             {ok, State}
@@ -36,15 +35,15 @@ reminder(Pid, Nick, State) ->
 
 handle_event(Msg, State) ->
     case Msg of
-        {Pid, {match, [Sender, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!tell ",Rest/binary>>]}} ->
-            remember(Pid, Channel, Sender, Rest, State);
-        {Pid, {match, [Sender, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!ask ",Rest/binary>>]}} ->
-            remember(Pid, Channel, Sender, Rest, State);
+        {Ref, {match, [Sender, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!tell ",Rest/binary>>]}} ->
+            remember(Ref, Channel, Sender, Rest, State);
+        {Ref, {match, [Sender, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!ask ",Rest/binary>>]}} ->
+            remember(Ref, Channel, Sender, Rest, State);
 
-        {Pid, {match, [Sender, _Name, <<"JOIN">>, <<"#",_Channel/binary>>]}} ->
-            reminder(Pid, Sender, State);
-        {Pid, {match, [_Sender, _Name, <<"NICK">>, Nick]}} ->
-            reminder(Pid, Nick, State);
+        {Ref, {match, [Sender, _Name, <<"JOIN">>, <<"#",_Channel/binary>>]}} ->
+            reminder(Ref, Sender, State);
+        {Ref, {match, [_Sender, _Name, <<"NICK">>, Nick]}} ->
+            reminder(Ref, Nick, State);
         _ ->
             {ok, State}
     end.

@@ -12,10 +12,10 @@ init(_Args) ->
 
 handle_event(Msg, State) ->
     case Msg of
-        {Pid, {match, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^AVERSION\^A">>]}} ->
-            gen_server:cast(Pid, {send_data, ["NOTICE ", Sender, " :\^AVERSION ", ?VERSION, "\^A"]});
-        {Pid, {match, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^APING ", Rest/binary>>]}} ->
-            gen_server:cast(Pid, {send_data, ["NOTICE ", Sender, " :\^APING ", Rest]});
+        {Ref, {match, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^AVERSION\^A">>]}} ->
+            Ref:send_data(["NOTICE ", Sender, " :\^AVERSION ", ?VERSION, "\^A"]);
+        {Ref, {match, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^APING ", Rest/binary>>]}} ->
+            Ref:send_data(["NOTICE ", Sender, " :\^APING ", Rest]);
         _ ->
             ok
     end,

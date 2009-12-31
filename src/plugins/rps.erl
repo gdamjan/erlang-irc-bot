@@ -6,27 +6,26 @@
 
 -import(lists).
 -import(random).
--import(gen_server).
 
 init(_Args) ->
     {ok, []}.
 
 handle_event(Msg, State) ->
     case Msg of
-       {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!rock">>]}} ->
-            gen_server:cast(Pid, {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(rock)]}),
+       {Ref, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!rock">>]}} ->
+            Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(rock)]),
             {ok, State};
-       {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!paper">>]}} ->
-            gen_server:cast(Pid, {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(paper)]}),
+       {Ref, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!paper">>]}} ->
+            Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(paper)]),
             {ok, State};
-       {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!scissors">>]}} ->
-            gen_server:cast(Pid, {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(scissors)]}),
+       {Ref, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!scissors">>]}} ->
+            Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(scissors)]),
             {ok, State};
-       {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!spock">>]}} ->
-            gen_server:cast(Pid, {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(spock)]}),
+       {Ref, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!spock">>]}} ->
+            Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(spock)]),
             {ok, State};
-       {Pid, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!lizard">>]}} ->
-            gen_server:cast(Pid, {send_data, ["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(lizard)]}),
+       {Ref, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!lizard">>]}} ->
+            Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(lizard)]),
             {ok, State};
         _ ->
             {ok, State}

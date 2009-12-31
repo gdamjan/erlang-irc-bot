@@ -3,7 +3,7 @@
 -author('gdamjan@gmail.com').
 
 -include_lib("ircbot.hrl").
--record(config, {nickname, server, channels}).
+-record(config, {nickname, server}).
 -record(state, {sock, plugin_mgr}).
 
 
@@ -28,18 +28,20 @@ init(Settings) ->
     Config = get_config(Settings),
     {ok, Plugins} = init_plugins(Settings),
     State = #state{sock=none, plugin_mgr=Plugins},
-    {ok, {State, Config}}.
+    Self = ircbot_api:new(self()),
+    {ok, {Self, State, Config}}.
 
 get_config(Settings) ->
     Nick = proplists:get_value(nickname, Settings),
     {Host, Port} = proplists:get_value(server, Settings),
-    Chans = proplists:get_value(channels, Settings, []),
-    #config{nickname=Nick, server={Host, Port}, channels=Chans}.
+    #config{nickname=Nick, server={Host, Port}}.
 
 init_plugins(Settings) ->
     {ok, Plugins} = gen_event:start_link(),
+    Channels = proplists:get_value(channels, Settings, []),
     gen_event:add_handler(Plugins, pong_plugin, []),
     gen_event:add_handler(Plugins, ctcp_plugin, []),
+    gen_event:add_handler(Plugins, channels_plugin, [Channels]),
     lists:foreach(
         fun ({Plugin, Args}) ->
             gen_event:add_handler(Plugins, Plugin, Args)
@@ -49,42 +51,40 @@ init_plugins(Settings) ->
     {ok, Plugins}.
 
 
-handle_call(connect, _From, {State, Config}) ->
+handle_call(connect, _From, {Self, State, Config}) ->
     {Host, Port} = Config#config.server,
     {ok, Sock} = gen_tcp:connect(Host, Port,
             [binary, {active, true}, {packet, line}], ?TCPTIMEOUT),
     send_msg(Sock, ["NICK ", Config#config.nickname]),
     send_msg(Sock, ["USER ", Config#config.nickname, " 8 * :", ?REALNAME]),
-    lists:foreach(
-        fun (Ch) ->
-            send_msg(Sock, ["JOIN ", Ch])
-        end,
-        Config#config.channels
-    ),
-    {reply, ok, {State#state{sock=Sock}, Config}};
+    {reply, ok, {Self, State#state{sock=Sock}, Config}};
 
-handle_call(disconnect, _From, {State, Config}) ->
+handle_call(disconnect, _From, {Self, State, Config}) ->
     Sock = State#state.sock,
     send_msg(Sock, ["QUIT :", ?QUITMSG]),
     gen_tcp:close(Sock),
-    {reply, ok, {State#state{sock=none}, Config}};
+    {reply, ok, {Self, State#state{sock=none}, Config}};
 
-handle_call({add_plugin, Plugin, Args},  _From, {State, Config}) ->
+handle_call({add_plugin, Plugin, Args}, _From, {Self, State, Config}) ->
     gen_event:add_handler(State#state.plugin_mgr, Plugin, Args),
-    {reply, ok, {State, Config}}.
+    {reply, ok, {Self, State, Config}};
 
-handle_cast({send_data, Data}, {State, Config}) ->
+handle_call(which_plugins, _From, {Self, State, Config}) ->
+    R = gen_event:which_handlers(State#state.plugin_mgr),
+    {reply, R, {Self, State, Config}}.
+
+handle_cast({send_data, Data}, {Self, State, Config}) ->
     send_msg(State#state.sock, Data),
-    {noreply, {State, Config}}.
+    {noreply, {Self, State, Config}}.
 
 
 %% handle socket data
-handle_info({tcp, _Sock, Data}, {State, Config}) ->
+handle_info({tcp, _Sock, Data}, {Self, State, Config}) ->
     [Line|_Tail] = re:split(Data, "\r\n"), % strip the CRNL at the end
     debug(in, [Line]),    % for debuging only
     IrcMessage = utils:irc_parse(Line),
-    gen_event:notify(State#state.plugin_mgr, {self(), IrcMessage}), % notify all plugins
-    {noreply, {State, Config}};
+    gen_event:notify(State#state.plugin_mgr, {Self, IrcMessage}), % notify all plugins
+    {noreply, {Self, State, Config}};
 
 
 %% handle errors on the socket

@@ -11,13 +11,13 @@ init(_Args) ->
 
 handle_event(Msg, State) ->
     case Msg of
-        {_Pid, {match, [Server, _, <<"001">>, _Nick, _]}} ->
+        {_Ref, {match, [Server, _, <<"001">>, _Nick, _]}} ->
             {ok, Server};
-        {Pid, {match, [<<>>,<<>>,<<"PING">>, Server]}} ->
-            gen_server:cast(Pid, {send_data, [<<"PONG :">>, Server]}),
+        {Ref, {match, [<<>>,<<>>,<<"PING">>, Server]}} ->
+            Ref:send_data([<<"PONG :">>, Server]),
             {ok, Server};
-        {Pid, keepalive} ->
-            gen_server:cast(Pid, {send_data, ["PING :", State]}),
+        {Ref, keepalive} ->
+            Ref:send_data(["PING :", State]),
             {ok, State};
         _ ->
             {ok, State}
