@@ -7,7 +7,7 @@ PLUGINS_SRC := $(wildcard src/plugins/*.erl)
 PLUGINS_OBJ := $(PLUGINS_SRC:src/plugins/%.erl=ebin/plugins/%.beam)
 
 
-all: main plugins
+all: main plugins ebin/ircbot.app
 main: ebin/ ${ERL_OBJ}
 plugins: ebin/plugins/ ${PLUGINS_OBJ}
 
@@ -17,6 +17,8 @@ ebin/:
 ebin/plugins/:
 	@mkdir -p ebin/plugins
 
+ebin/%.app: src/%.app
+	cp $< $@
 
 ebin/%.beam: src/%.erl
 	erlc -o `dirname $@` $<
