@@ -18,7 +18,7 @@ fancy_time(T) ->
 remember(Ref, Channel, From, Msg, State) ->
     Timestamp = 1,
     [Recepient | Message] = re:split(Msg, " ", [{parts,2}]),
-    Ref:send_data(["NOTICE ", From, " :ok, I'll  pass that to ", Recepient]),
+    Ref:send_data(["NOTICE ", From, " :ok, I'll  pass that to ", Recepient, " when he's around."]),
     {ok, dict:append(Recepient, {Timestamp, Channel, From, Message}, State)}.
 
 reminder(Ref, Nick, State) ->

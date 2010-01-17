@@ -23,14 +23,6 @@ start_link(Settings) ->
 
 
 
-%% gen_server callbacks
-init(Settings) ->
-    Config = get_config(Settings),
-    {ok, Plugins} = init_plugins(Settings),
-    State = #state{sock=none, plugin_mgr=Plugins},
-    Self = ircbot_api:new(self()),
-    {ok, {Self, State, Config}}.
-
 get_config(Settings) ->
     Nick = proplists:get_value(nickname, Settings),
     {Host, Port} = proplists:get_value(server, Settings),
@@ -50,6 +42,14 @@ init_plugins(Settings) ->
     ),
     {ok, Plugins}.
 
+
+%% gen_server callbacks
+init(Settings) ->
+    Config = get_config(Settings),
+    {ok, Plugins} = init_plugins(Settings),
+    State = #state{sock=none, plugin_mgr=Plugins},
+    Self = ircbot_api:new(self()),
+    {ok, {Self, State, Config}}.
 
 handle_call(connect, _From, {Self, State, Config}) ->
     {Host, Port} = Config#config.server,
