@@ -30,7 +30,7 @@ First, compile everything:
 
     make
 
-Second, edit and rename the settings.cfg.sample file (to settings.cfg). Then start 
+Second, edit and rename the settings.cfg.sample file (to settings.cfg). Then start
 an Erlang REPL shell. Make sure the module path is set to the ./ebin/
 directory, where all the compiled .beam files are:
 
@@ -41,13 +41,13 @@ or simply:
     make run-shell
 
 Once in the Erlang REPL you can start the bot with:
-    
+
     {ok, Settings} = file:consult("settings.cfg").
     {ok, IrcBot} = ircbot_server:start_link(Settings).
     gen_server:call(IrcBot, connect).
     gen_server:call(IrcBot, {add_plugin, 'plugins.rps', []}).
 
-You can make changes to the source code & plugins while the bot is running. 
+You can make changes to the source code & plugins while the bot is running.
 Just hit "make" in another terminal and then, if everything is ok, in the erlang REPL run:
 
     l('plugins.rps').
@@ -56,7 +56,7 @@ or
 
     l(ircbot_server).
 
-Erlangs [code switching][code switching] and the gen_server/gen_event frameworks 
+Erlangs [code switching][code switching] and the gen_server/gen_event frameworks
 will handle all the details to run the new code without even disconnecting.
 
 [code switching]: http://en.wikipedia.org/wiki/Erlang_%28programming_language%29#Hot_code_loading_and_modules

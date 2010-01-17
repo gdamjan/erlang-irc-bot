@@ -38,7 +38,7 @@ terminate(_Args, _State) -> ok.
 
 
 %% Play a game of rock-paper-scissors
-play(PlayerAttack) ->  
+play(PlayerAttack) ->
     ComputerAttack = get_computer_attack(),
     case get_result(PlayerAttack, ComputerAttack) of
         win ->
@@ -49,12 +49,12 @@ play(PlayerAttack) ->
             [": I chose ", atom_to_list(ComputerAttack), ". I WIN!"]
     end.
 
-%% choose a computer attack at random 
-get_computer_attack() ->  
-    %% Get an index position at random 
-    Index = random:uniform(5), 
+%% choose a computer attack at random
+get_computer_attack() ->
+    %% Get an index position at random
+    Index = random:uniform(5),
     %% Pull out an attack
-    lists:nth(Index, [rock, paper, scissors, spock, lizard]). 
+    lists:nth(Index, [rock, paper, scissors, spock, lizard]).
 
 %% Determine the result of an attack
 get_result(Player1, Player2) ->

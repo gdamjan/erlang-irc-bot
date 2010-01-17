@@ -20,7 +20,7 @@ debug(Msg) ->
 
 %% Based on http://regexlib.com/RETester.aspx?regexp_id=1057
 url_match(Line) ->
-    Re = "(((http|https)://)|(www\\.))?" 
+    Re = "(((http|https)://)|(www\\.))?"
          "(([a-zA-Z0-9\\._-]+\\.[a-zA-Z]{2,6})|"
          "([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}))"
          "(/[a-zA-Z0-9\\&amp;%_\\./-~-]*)?",

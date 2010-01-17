@@ -26,7 +26,7 @@ handle_event(Msg, State) ->
             {ok, State};
         {Ref, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title">>]}} ->
             case dict:is_key(Channel, State) of
-                true -> 
+                true ->
                     Url = dict:fetch(Channel, State),
                     spawn(?MODULE, getter, [Url, Ref, Channel]),
                     {ok, dict:erase(Channel, State)};
