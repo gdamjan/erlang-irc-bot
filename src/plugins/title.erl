@@ -34,7 +34,7 @@ handle_event(Msg, State) ->
                     {ok, State}
             end;
         {_Ref, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, Text]}} ->
-            case re:run(Text, "\\b((https?://|www\\.)[\\S]*)\\b", [caseless, {capture, [1], binary}]) of
+            case utils:url_match(Text) of
                 {match, [Url]} ->
                     {ok, dict:store(Channel, Url, State)};
                 _ ->

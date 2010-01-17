@@ -1,7 +1,7 @@
 -module(utils).
 -author('gdamjan@gmail.com').
 
--export([backoff/1, debug/1, irc_parse/1]).
+-export([backoff/1, debug/1, irc_parse/1, url_match/1]).
 
 backoff(N) when N > 5 ->
   backoff(5);
@@ -17,6 +17,14 @@ debug(Msg) ->
         ok ->
             ok
     end.
+
+%% Based on http://regexlib.com/RETester.aspx?regexp_id=1057
+url_match(Line) ->
+    Re = "(((http|https)://)|(www\\.))?" 
+         "(([a-zA-Z0-9\\._-]+\\.[a-zA-Z]{2,6})|"
+         "([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}))"
+         "(/[a-zA-Z0-9\\&amp;%_\\./-~-]*)?",
+    re:run(Line, Re, [caseless, {capture, [0], binary}]).
 
 % Erlang IRC message parsing made for parsing binaries
 % http://www.irchelp.org/irchelp/rfc/rfc2812.txt
