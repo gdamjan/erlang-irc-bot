@@ -17,6 +17,7 @@
 
 init(_Args) ->
     inets:start(),
+    ssl:start(),
     {ok, dict:new()}.
 
 handle_event(Msg, State) ->
@@ -55,9 +56,11 @@ sanitize_url(Url) when is_binary(Url) ->
     sanitize_url(erlang:binary_to_list(Url));
 
 sanitize_url(Url) when is_list(Url) ->
-    case lists:prefix("http://", Url) of
-        true -> Url;
-        false -> lists:append("http://", Url)
+    case {lists:prefix("http://", Url),lists:prefix("https://", Url)} of
+        {false, false} ->
+            lists:append("http://", Url);
+        _ ->
+            Url
     end.
 
 
