@@ -95,6 +95,8 @@ handle_info({tcp_error, Sock, Reason}, State) ->
 
 handle_info({tcp_closed, Sock}, State) ->
     io:format("Socket ~w closed [~w]~n", [Sock, self()]),
+    %% MAYBE add a sleep time
+    gen_server:call(self(), connect),
     {noreply, State};
 
 
