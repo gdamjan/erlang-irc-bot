@@ -33,7 +33,7 @@ init_plugins(Settings) ->
     Channels = proplists:get_value(channels, Settings, []),
     gen_event:add_handler(Plugins, pong_plugin, []),
     gen_event:add_handler(Plugins, ctcp_plugin, []),
-    gen_event:add_handler(Plugins, channels_plugin, [Channels]),
+    gen_event:add_handler(Plugins, channels_plugin, Channels),
     lists:foreach(
         fun ({Plugin, Args}) ->
             gen_event:add_handler(Plugins, Plugin, Args)
