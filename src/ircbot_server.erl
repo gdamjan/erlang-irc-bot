@@ -22,12 +22,12 @@ start_link(Settings) ->
     gen_server:start_link(?MODULE, Settings, []).
 
 
-
 get_config(Settings) ->
     Nick = proplists:get_value(nickname, Settings),
     {Host, Port} = proplists:get_value(server, Settings),
     #config{nickname=Nick, server={Host, Port}}.
 
+%% Start the plugin manager (gen_event)
 init_plugins(Settings) ->
     {ok, Plugins} = gen_event:start_link(),
     Channels = proplists:get_value(channels, Settings, []),
@@ -53,8 +53,9 @@ init(Settings) ->
 
 handle_call(connect, _From, {Self, State, Config}) ->
     {Host, Port} = Config#config.server,
-    {ok, Sock} = gen_tcp:connect(Host, Port,
-            [binary, {active, true}, {packet, line}], ?TCPTIMEOUT),
+    {ok, Sock} = gen_tcp:connect(Host, Port, [
+            binary, {active, true}, {packet, line}, {keepalive, true},
+            {send_timeout, ?SEND_TIMEOUT}], ?CONNECT_TIMEOUT),
     send_msg(Sock, ["NICK ", Config#config.nickname]),
     send_msg(Sock, ["USER ", Config#config.nickname, " 8 * :", ?REALNAME]),
     {reply, ok, {Self, State#state{sock=Sock}, Config}};
