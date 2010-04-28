@@ -62,7 +62,7 @@ terminate(_Args, _State) -> ok.
 %% The function gets spawned as a separate process, and fails silently on any
 %% error.
 fetch(Url, Ref, Channel) ->
-    F = fun(Title) -> Ref:send_data(["PRIVMSG ", Channel, " :", Title]) end,
+    F = fun(Title) -> Ref:send_data(["NOTICE ", Channel, " :", Title]) end,
     spawn(fun() -> fetcher(Url, F) end).
 
 fetcher(Url, Callback) ->
