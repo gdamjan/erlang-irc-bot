@@ -8,16 +8,19 @@
 -import(dict).
 -import(lists).
 
+
 init(_Args) ->
     {ok, dict:new()}.
 
 
 fancy_time(T) ->
+    %% FIXME: compare local time to T and return fancy time like
+    %% an hour ago, minutes ago, days ago etc..
     "{time}".
 
 remember(Ref, Channel, From, Msg, State) ->
     Timestamp = 1,
-    [Recepient | Message] = re:split(Msg, " ", [{parts,2}]),
+    [Recepient | Message] = re:split(Msg, "[^a-zA-Z0-9^|{}[\\]\\\\`-]", [{parts,2}]),
     Ref:send_data(["NOTICE ", From, " :ok, I'll  pass that to ", Recepient, " when he's around."]),
     {ok, dict:append(Recepient, {Timestamp, Channel, From, Message}, State)}.
 
