@@ -4,7 +4,7 @@
 
 -include_lib("ircbot.hrl").
 -record(config, {nickname, server}).
--record(state, {sock, plugin_mgr}).
+-record(state, {conn, plugin_mgr}).
 
 
 %% API
@@ -48,7 +48,7 @@ init(Settings) ->
     process_flag(trap_exit, true),
     Config = get_config(Settings),
     {ok, Plugins} = init_plugins(Settings),
-    State = #state{sock=none, plugin_mgr=Plugins},
+    State = #state{conn=none, plugin_mgr=Plugins},
     Self = ircbot_api:new(self()),
     {ok, {Self, State, Config}}.
 
@@ -61,13 +61,13 @@ connect(Config) ->
 
 handle_call(connect, _From, {Self, State, Config}) ->
     Pid = connect(Config),
-    {reply, ok, {Self, State#state{sock=Pid}, Config}};
+    {reply, ok, {Self, State#state{conn=Pid}, Config}};
 
 handle_call(disconnect, _From, {Self, State, Config}) ->
-    Pid = State#state.sock,
+    Pid = State#state.conn,
     Pid ! {send_data, ["QUIT :", ?QUITMSG]},
     Pid ! quit,
-    {reply, ok, {Self, State#state{sock=none}, Config}};
+    {reply, ok, {Self, State#state{conn=none}, Config}};
 
 
 handle_call({add_plugin, Plugin, Args}, _From, {Self, State, Config}) ->
@@ -84,7 +84,7 @@ handle_call(which_plugins, _From, {Self, State, Config}) ->
 
 
 handle_cast({send_data, Data}, {Self, State, Config}) ->
-    Pid = State#state.sock,
+    Pid = State#state.conn,
     Pid ! {send_data, Data},
     {noreply, {Self, State, Config}};
 
@@ -94,9 +94,9 @@ handle_cast({received_data, Data}, {Self, State, Config}) ->
     {noreply, {Self, State, Config}}.
 
 
-handle_info({'EXIT', Pid, normal}, {Self, State=#state{sock=Pid}, Config}) ->
+handle_info({'EXIT', Pid, normal}, {Self, State=#state{conn=Pid}, Config}) ->
     NewPid = connect(Config),
-    {noreply, {Self, State#state{sock=NewPid}, Config}};
+    {noreply, {Self, State#state{conn=NewPid}, Config}};
 
 %% handle unknown messages
 handle_info(Msg, State) ->
