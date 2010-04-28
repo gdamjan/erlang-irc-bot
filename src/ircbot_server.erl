@@ -94,9 +94,9 @@ handle_cast({received_data, Data}, {Self, State, Config}) ->
     {noreply, {Self, State, Config}}.
 
 
-handle_info({'EXIT', _OldPid, normal}, {Self, State, Config}) ->
-    Pid = connect(Config),
-    {noreply, {Self, State#state{sock=Pid}, Config}};
+handle_info({'EXIT', Pid, normal}, {Self, State=#state{sock=Pid}, Config}) ->
+    NewPid = connect(Config),
+    {noreply, {Self, State#state{sock=NewPid}, Config}};
 
 %% handle unknown messages
 handle_info(Msg, State) ->
