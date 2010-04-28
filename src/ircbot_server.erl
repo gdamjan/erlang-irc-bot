@@ -70,6 +70,10 @@ handle_call({add_plugin, Plugin, Args}, _From, {Self, State, Config}) ->
     gen_event:add_handler(State#state.plugin_mgr, Plugin, Args),
     {reply, ok, {Self, State, Config}};
 
+handle_call({delete_plugin, Plugin, Args}, _From, {Self, State, Config}) ->
+    gen_event:delete_handler(State#state.plugin_mgr, Plugin, Args),
+    {reply, ok, {Self, State, Config}};
+
 handle_call(which_plugins, _From, {Self, State, Config}) ->
     R = gen_event:which_handlers(State#state.plugin_mgr),
     {reply, R, {Self, State, Config}}.

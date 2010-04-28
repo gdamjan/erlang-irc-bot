@@ -20,6 +20,9 @@ reconnect() ->
 add_plugin(Plugin, Args) ->
     gen_server:call(IrcbotRef, {add_plugin, Plugin, Args}).
 
+delete_plugin(Plugin, Args) ->
+    gen_server:call(IrcbotRef, {delete_plugin, Plugin, Args}).
+
 which_plugins() ->
     gen_server:call(IrcbotRef, which_plugins).
 
