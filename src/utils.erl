@@ -1,7 +1,7 @@
 -module(utils).
 -author('gdamjan@gmail.com').
 
--export([backoff/1, debug/1, irc_parse/1, url_match/1, url_match/2]).
+-export([backoff/1, debug/1, irc_parse/1, url_match/1, url_match/2, url_quote/1]).
 
 backoff(N) when N > 5 ->
   backoff(5);
@@ -28,6 +28,31 @@ url_match(Line, Suffix) ->
 
 url_match(Line) ->
     url_match(Line, "").
+
+%% Stolen from mochiweb
+-define(PERCENT, 37).  % $\%
+-define(FULLSTOP, 46). % $\.
+-define(QS_SAFE(C), ((C >= $a andalso C =< $z) orelse
+                     (C >= $A andalso C =< $Z) orelse
+                     (C >= $0 andalso C =< $9) orelse
+                     (C =:= ?FULLSTOP orelse C =:= $- orelse C =:= $~ orelse
+                      C =:= $_))).
+
+hexdigit(C) when C < 10 -> $0 + C;
+hexdigit(C) when C < 16 -> $A + (C - 10).
+
+url_quote(Binary) when is_binary(Binary) ->
+    url_quote(binary_to_list(Binary));
+url_quote(String) ->
+    url_quote(String, []).
+
+url_quote([], Acc) ->
+    lists:reverse(Acc);
+url_quote([C | Rest], Acc) when ?QS_SAFE(C) ->
+    url_quote(Rest, [C | Acc]);
+url_quote([C | Rest], Acc) ->
+    <<Hi:4, Lo:4>> = <<C>>,
+    url_quote(Rest, [hexdigit(Lo), hexdigit(Hi), ?PERCENT | Acc]).
 
 % Erlang IRC message parsing made for parsing binaries
 % http://www.irchelp.org/irchelp/rfc/rfc2812.txt
