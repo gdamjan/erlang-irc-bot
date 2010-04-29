@@ -52,21 +52,18 @@ init(Settings) ->
     Self = ircbot_api:new(self()),
     {ok, {Self, State, Config}}.
 
-connect(Config) ->
-    {Host, Port} = Config#config.server,
-    Pid = ircbot_connection:start_link(self(), Host, Port),
-    Pid ! {send_data, ["NICK ", Config#config.nickname]},
-    Pid ! {send_data, ["USER ", Config#config.nickname, " 8 * :", ?REALNAME]},
-    Pid.
 
 handle_call(connect, _From, {Self, State, Config}) ->
-    Pid = connect(Config),
-    {reply, ok, {Self, State#state{conn=Pid}, Config}};
+    {Host, Port} = Config#config.server,
+    Connection = ircbot_connection:start_link(self(), Host, Port),
+    Connection ! {send_data, ["NICK ", Config#config.nickname]},
+    Connection ! {send_data, ["USER ", Config#config.nickname, " 8 * :", ?REALNAME]},
+    {reply, ok, {Self, State#state{conn=Connection}, Config}};
 
 handle_call(disconnect, _From, {Self, State, Config}) ->
-    Pid = State#state.conn,
-    Pid ! {send_data, ["QUIT :", ?QUITMSG]},
-    Pid ! quit,
+    Connection = State#state.conn,
+    Connection ! {send_data, ["QUIT :", ?QUITMSG]},
+    Connection ! quit,
     {reply, ok, {Self, State#state{conn=none}, Config}};
 
 
@@ -84,8 +81,8 @@ handle_call(which_plugins, _From, {Self, State, Config}) ->
 
 
 handle_cast({send_data, Data}, {Self, State, Config}) ->
-    Pid = State#state.conn,
-    Pid ! {send_data, Data},
+    Connection = State#state.conn,
+    Connection ! {send_data, Data},
     {noreply, {Self, State, Config}};
 
 handle_cast({received_data, Data}, {Self, State, Config}) ->
@@ -94,9 +91,11 @@ handle_cast({received_data, Data}, {Self, State, Config}) ->
     {noreply, {Self, State, Config}}.
 
 
+%% handle the EXIT of the connection process
 handle_info({'EXIT', Pid, normal}, {Self, State=#state{conn=Pid}, Config}) ->
-    NewPid = connect(Config),
-    {noreply, {Self, State#state{conn=NewPid}, Config}};
+    {reply, ok, NewState} =  handle_call(connect, none, {Self, State#state{conn=none}, Config}),
+    {noreply, NewState};
+
 
 %% handle unknown messages
 handle_info(Msg, State) ->
