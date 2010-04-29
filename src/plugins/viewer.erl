@@ -16,7 +16,7 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
         {Ref, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, Text]}} ->
-            case utils:url_match(Text, "pdf|pps|tiff|tif") of
+            case utils:url_match(Text, "\\.pdf|\\.pps|\\.tiff|\\.tif") of
                 {match, [Url]} ->
                     Url1 = utils:url_quote(Url),
                     Ref:send_data(["NOTICE ", Channel,
