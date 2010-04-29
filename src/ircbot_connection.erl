@@ -16,12 +16,17 @@ connect(Parent, Host, Port, Backoff) when Backoff > 5 ->
 connect(Parent, Host, Port, Backoff) ->
     Opts = [ binary, {active, true}, {packet, line}, {keepalive, true},
                 {send_timeout, ?SEND_TIMEOUT}],
+    utils:debug(["Connecting..."]),
     case gen_tcp:connect(Host, Port, Opts, ?CONNECT_TIMEOUT) of
         {ok, Sock} ->
+            utils:debug(["Connection established!"]),
             loop(Parent, Sock);
-        _  ->
+        {error, Reason}  ->
+            utils:debug(["Error connecting: ", inet:format_error(Reason)]),
             timer:sleep(Backoff * Backoff * 5000),
-            connect(Parent, Host, Port, Backoff + 1)
+            connect(Parent, Host, Port, Backoff + 1);
+        Other ->
+            io:format("~p~n", [Other])
     end.
 
 
