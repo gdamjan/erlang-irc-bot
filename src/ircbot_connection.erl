@@ -4,7 +4,7 @@
 -include_lib("ircbot.hrl").
 -define(CRNL, "\r\n").
 
--export([start_link/3]).
+-export([start_link/3, code_switch/1]).
 
 
 start_link(Parent, Host, Port)  ->
@@ -20,7 +20,7 @@ connect(Parent, Host, Port, Backoff) ->
     case gen_tcp:connect(Host, Port, Opts, ?CONNECT_TIMEOUT) of
         {ok, Sock} ->
             utils:debug(["Connection established!"]),
-            loop(Parent, Sock);
+            loop({Parent, Sock});
         {error, Reason}  ->
             utils:debug(["Error connecting: ", inet:format_error(Reason)]),
             timer:sleep(Backoff * Backoff * 5000),
@@ -30,24 +30,28 @@ connect(Parent, Host, Port, Backoff) ->
     end.
 
 
-loop(Parent, Sock) ->
+loop({Parent, Sock} = State) ->
     receive
         % data to send away on the socket
         {send_data, Data} ->
             debug(out, [Data]), % for debuging only
             gen_tcp:send(Sock, [Data, ?CRNL]),
-            loop(Parent, Sock);
+            loop(State);
 
         % data received from the socket
         {tcp, Sock, Data} ->
             [Line|_Tail] = re:split(Data, ?CRNL), % strip the CRNL at the end
             debug(in, [Line]),    % for debuging only
             gen_server:cast(Parent, {received_data, Line}),
-            loop(Parent, Sock);
+            loop(State);
 
         % close socket and quit
         quit ->
             gen_tcp:close(Sock);
+
+        % Force the use of 'codeswitch/1' from the latest MODULE version
+        code_switch ->
+            ?MODULE:code_switch(State);
 
         % handle errors on the socket
         {tcp_error, Sock, Reason} ->
@@ -57,6 +61,7 @@ loop(Parent, Sock) ->
             io:format("Socket ~w closed [~w]~n", [Sock, self()])
     end.
 
+code_switch(State) -> loop(State).
 
 %% debug helpers
 debug(in, Msg) ->
