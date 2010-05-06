@@ -1,0 +1,24 @@
+Extra functionality
+===================
+
+couch_log.erl
+~~~~~~~~~~~~~
+
+A plugin that logs the messages to a CouchDB database. It requires CouchBeam_.
+To compile first clone and compile CouchBeam_::
+
+ cd extra
+ git clone git://github.com/benoitc/couchbeam.git
+ cd couchbeam
+ make
+ cd ..
+ erlc -o ../ebin/plugins -I couchbeam/include couch_log.erl
+
+then to use the plugin, you'll have to add the "ebin/" directories to the path
+of your erlang process too::
+
+  erl -pa ebin -pa extra/couchbeam/ebin -pa extra/couchbeam/deps/*/ebin
+
+
+
+.. _CouchBeam: http://benoitc.github.com/couchbeam/
