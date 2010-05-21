@@ -20,7 +20,7 @@ connect(Parent, Host, Port, Backoff) ->
     case gen_tcp:connect(Host, Port, Opts, ?CONNECT_TIMEOUT) of
         {ok, Sock} ->
             io:format("Success!~n"),
-            loop({Parent, Sock});
+            loop({Parent, Sock, ?RECV_TIMEOUT});
         {error, Reason}  ->
             io:format("error: ~s~n", [inet:format_error(Reason)]),
             timer:sleep(Backoff * Backoff * 5000),
@@ -30,7 +30,7 @@ connect(Parent, Host, Port, Backoff) ->
     end.
 
 
-loop({Parent, Sock} = State) ->
+loop({Parent, Sock, Timeout} = State) ->
     receive
         % data to send away on the socket
         {send_data, Data} ->
@@ -59,6 +59,9 @@ loop({Parent, Sock} = State) ->
 
         {tcp_closed, Sock} ->
             io:format("Socket ~w closed [~w]~n", [Sock, self()])
+    after Timeout ->
+        io:format("No activity for more than ~b microseconds. Are we stuck?~n", [Timeout]),
+        gen_tcp:close(Sock)
     end.
 
 code_switch(State) -> loop(State).
