@@ -109,5 +109,13 @@ handle_info(Msg, State) ->
     io:format("UNK: ~w~n", [Msg]),
     {noreply, State}.
 
+code_change(_OldVsn, {Self, State, Config}, _Extra) ->
+    if
+        is_pid(State#state.conn) ->
+            State#state.conn ! code_switch;
+        true ->
+            ok
+    end,
+    {ok, {Self, State, Config}}.
+
 terminate(_Reason, _State) -> ok.
-code_change(_OldVsn, State, _Extra) -> {ok, State}.
