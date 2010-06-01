@@ -68,7 +68,14 @@ handle_call(disconnect, _From, {Self, State, Config}) ->
 
 
 handle_call({add_plugin, Plugin, Args}, _From, {Self, State, Config}) ->
-    gen_event:add_handler(State#state.plugin_mgr, Plugin, Args),
+    case gen_event:add_handler(State#state.plugin_mgr, Plugin, Args) of
+        ok ->
+            ok;
+        {'EXIT', Reason} ->
+            error_logger:error_msg("Problem loading plugin ~p ~p ~n", [Plugin, Reason]);
+        Other ->
+            error_logger:error_msg("Loading ~p reports ~p ~n", [Plugin, Other])
+    end,
     {reply, ok, {Self, State, Config}};
 
 handle_call({delete_plugin, Plugin, Args}, _From, {Self, State, Config}) ->
