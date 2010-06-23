@@ -42,13 +42,14 @@ handle_event(Msg, State) ->
             reminder(Ref, Sender, State);
         {Ref, {match, [_Sender, _Name, <<"NICK">>, Nick]}} ->
             reminder(Ref, Nick, State);
-        {Ref, {match, [Sender, _Name, <<"PRIVMSG">>, <<"#",_Channel/binary>>]}} ->
-            reminder(Ref, Sender, State);
 
         {Ref, {match, [Sender, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!tell ",Rest/binary>>]}} ->
             remember(Ref, Channel, Sender, Rest, State);
         {Ref, {match, [Sender, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!ask ",Rest/binary>>]}} ->
             remember(Ref, Channel, Sender, Rest, State);
+
+        {Ref, {match, [Sender, _Name, <<"PRIVMSG">>, <<"#",_Channel/binary>>, _Something]}} ->
+            reminder(Ref, Sender, State);
         _ ->
             {ok, State}
     end.
