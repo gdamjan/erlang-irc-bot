@@ -52,22 +52,22 @@ init(Settings) ->
     Self = ircbot_api:new(self()),
     {ok, {Self, State, Config}}.
 
+start_new_connection(Config) ->
+    {Host, Port} = Config#config.server,
+    ircbot_connection:start_link(Host, Port).
 
 handle_call(connect, _From, {Self, State, Config}) ->
-    {Host, Port} = Config#config.server,
-    Connection = ircbot_connection:start_link(self(), Host, Port),
-    Connection ! {send_data, ["NICK ", Config#config.nickname]},
-    Connection ! {send_data, ["USER ", Config#config.nickname, " 8 * :", ?REALNAME]},
-    {reply, ok, {Self, State#state{conn=Connection}, Config}};
+    Pid = start_new_connection(Config),
+    {reply, ok, {Self, State#state{conn=Pid}, Config}};
 
-handle_call(disconnect, _From, {Self, State, Config}) ->
-    Connection = State#state.conn,
-    Connection ! {send_data, ["QUIT :", ?QUITMSG]},
-    Connection ! quit,
-    {reply, ok, {Self, State#state{conn=none}, Config}};
+handle_call(disconnect, _From, S = {_Self, State, _Config}) ->
+    Conn = State#state.conn,
+    Conn ! {send_data, ["QUIT :", ?QUITMSG]},
+    Conn ! quit,
+    {reply, ok, S};
 
 
-handle_call({add_plugin, Plugin, Args}, _From, {Self, State, Config}) ->
+handle_call({add_plugin, Plugin, Args}, _From, S = {_Self, State, _Config}) ->
     case gen_event:add_handler(State#state.plugin_mgr, Plugin, Args) of
         ok ->
             ok;
@@ -76,32 +76,38 @@ handle_call({add_plugin, Plugin, Args}, _From, {Self, State, Config}) ->
         Other ->
             error_logger:error_msg("Loading ~p reports ~p ~n", [Plugin, Other])
     end,
-    {reply, ok, {Self, State, Config}};
+    {reply, ok, S};
 
-handle_call({delete_plugin, Plugin, Args}, _From, {Self, State, Config}) ->
+handle_call({delete_plugin, Plugin, Args}, _From, S = {_Self, State, _Config}) ->
     gen_event:delete_handler(State#state.plugin_mgr, Plugin, Args),
-    {reply, ok, {Self, State, Config}};
+    {reply, ok, S};
 
-handle_call(which_plugins, _From, {Self, State, Config}) ->
+handle_call(which_plugins, _From, S = {_Self, State, _Config}) ->
     R = gen_event:which_handlers(State#state.plugin_mgr),
-    {reply, R, {Self, State, Config}}.
+    {reply, R, S}.
 
 
-handle_cast({send_data, Data}, {Self, State, Config}) ->
-    Connection = State#state.conn,
-    Connection ! {send_data, Data},
-    {noreply, {Self, State, Config}};
+handle_cast({connect_success, Conn}, {Self, State, Config}) ->
+    Conn ! {send_data, ["NICK ", Config#config.nickname]},
+    Conn ! {send_data, ["USER ", Config#config.nickname, " 8 * :", ?REALNAME]},
+    gen_event:notify(State#state.plugin_mgr, {Self, online}),
+    {noreply, {Self, State#state{conn=Conn}, Config}};
 
-handle_cast({received_data, Data}, {Self, State, Config}) ->
+handle_cast({send_data, Data}, S = {_Self, State, _Config}) ->
+    Conn = State#state.conn,
+    Conn ! {send_data, Data},
+    {noreply, S};
+
+handle_cast({received_data, Data}, S = {Self, State, _Config}) ->
     IrcMessage = utils:irc_parse(Data),
     gen_event:notify(State#state.plugin_mgr, {Self, IrcMessage}), % notify all plugins
-    {noreply, {Self, State, Config}}.
-
+    {noreply, S}.
 
 %% handle the EXIT of the connection process
 handle_info({'EXIT', Pid, normal}, {Self, State=#state{conn=Pid}, Config}) ->
-    {reply, ok, NewState} =  handle_call(connect, none, {Self, State#state{conn=none}, Config}),
-    {noreply, NewState};
+    gen_event:notify(State#state.plugin_mgr, {Self, offline}),
+    NewPid = start_new_connection(Config),
+    {noreply, {Self, State=#state{conn=NewPid}, Config}};
 
 
 %% handle unknown messages
