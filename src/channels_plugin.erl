@@ -13,17 +13,17 @@ init(Channels) ->
 
 handle_event(Msg, Channels) ->
     case Msg of
-        {Ref, {match, [_, _, <<"001">>, _Nick, _]}} ->
+        {in, Ref, [_, _, <<"001">>, _Nick, _]} ->
         %% join the channels on connect
             lists:foreach(
                 fun (Ch) -> Ref:send_data(["JOIN ", Ch]) end,
                 sets:to_list(Channels)
             ),
             {ok, Channels};
-        {_Ref, {match, [_Server, _, <<"JOIN">>, Channel]}} ->
+        {in, _Ref, [_Server, _, <<"JOIN">>, Channel]} ->
         %% keep track of channels
             {ok, sets:add_element(Channel, Channels)};
-        {_Ref, {match, [_Server, _, <<"PART">>, Channel]}} ->
+        {in, _Ref, [_Server, _, <<"PART">>, Channel]} ->
         %% keep track of channels
             {ok, sets:del_element(Channel, Channels)};
         _ ->

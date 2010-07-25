@@ -24,11 +24,11 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
         % explicit command to fetch a web page title
-        {Ref, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title ", Url/binary>>]}} ->
+        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title ", Url/binary>>]} ->
             fetch(Url, Ref, Channel),
             {ok, State};
         % fetch the title of the last url that appeared on the channel
-        {Ref, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title">>]}} ->
+        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title">>]} ->
             case dict:is_key(Channel, State) of
                 true ->
                     Url = dict:fetch(Channel, State),
@@ -39,7 +39,7 @@ handle_event(Msg, State) ->
             end;
         % look if there's an url in the text message on the channel, and
         % remmember it
-        {_Ref, {match, [_Nick, _Name, <<"PRIVMSG">>, Channel, Text]}} ->
+        {in, _Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, Text]} ->
             case utils:url_match(Text) of
                 {match, [Url]} ->
                     {ok, dict:store(Channel, Url, State)};

@@ -12,9 +12,9 @@ init(_Args) ->
 
 handle_event(Msg, State) ->
     case Msg of
-        {Ref, {match, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^AVERSION\^A">>]}} ->
+        {in, Ref, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^AVERSION\^A">>]} ->
             Ref:send_data(["NOTICE ", Sender, " :\^AVERSION ", ?VERSION, "\^A"]);
-        {Ref, {match, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^APING ", Rest/binary>>]}} ->
+        {in, Ref, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^APING ", Rest/binary>>]} ->
             Ref:send_data(["NOTICE ", Sender, " :\^APING ", Rest]);
         _ ->
             ok

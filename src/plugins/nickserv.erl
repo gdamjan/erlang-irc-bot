@@ -26,7 +26,7 @@ init(Password) ->
 
 handle_event(Msg, Password) ->
     case Msg of
-        {Ref, {match, [<<"NickServ">>, _User, <<"NOTICE">>, _Nick, ?TRIGGER]}} ->
+        {in, Ref, [<<"NickServ">>, _User, <<"NOTICE">>, _Nick, ?TRIGGER]} ->
             Ref:send_data(["PRIVMSG NickServ :identify ", Password]);
         _ ->
             ok

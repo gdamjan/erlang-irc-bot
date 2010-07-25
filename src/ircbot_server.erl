@@ -99,8 +99,8 @@ handle_cast({send_data, Data}, S = {_Self, State, _Config}) ->
     {noreply, S};
 
 handle_cast({received_data, Data}, S = {Self, State, _Config}) ->
-    IrcMessage = utils:irc_parse(Data),
-    gen_event:notify(State#state.plugin_mgr, {Self, IrcMessage}), % notify all plugins
+    {match, IrcMessage} = utils:irc_parse(Data),
+    gen_event:notify(State#state.plugin_mgr, {in, Self, IrcMessage}), % notify all plugins
     {noreply, S}.
 
 %% handle the EXIT of the connection process

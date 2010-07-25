@@ -11,12 +11,12 @@ init(_Args) ->
 
 handle_event(Msg, State) ->
     case Msg of
-        {_Ref, {match, [Server, _, <<"001">>, _Nick, _]}} ->
+        {in, _Ref, [Server, _, <<"001">>, _Nick, _]} ->
             {ok, Server};
-        {Ref, {match, [<<>>,<<>>,<<"PING">>, Server]}} ->
+        {in, Ref, [<<>>,<<>>,<<"PING">>, Server]} ->
             Ref:send_data([<<"PONG :">>, Server]),
             {ok, Server};
-        {Ref, keepalive} ->
+        {keepalive, Ref} ->
             Ref:send_data(["PING :", State]),
             {ok, State};
         _ ->

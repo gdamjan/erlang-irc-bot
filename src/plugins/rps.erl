@@ -12,19 +12,19 @@ init(_Args) ->
 
 handle_event(Msg, State) ->
     case Msg of
-       {Ref, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!rock">>]}} ->
+       {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!rock">>]} ->
             Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(rock)]),
             {ok, State};
-       {Ref, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!paper">>]}} ->
+       {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!paper">>]} ->
             Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(paper)]),
             {ok, State};
-       {Ref, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!scissors">>]}} ->
+       {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!scissors">>]} ->
             Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(scissors)]),
             {ok, State};
-       {Ref, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!spock">>]}} ->
+       {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!spock">>]} ->
             Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(spock)]),
             {ok, State};
-       {Ref, {match, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!lizard">>]}} ->
+       {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!lizard">>]} ->
             Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(lizard)]),
             {ok, State};
         _ ->
