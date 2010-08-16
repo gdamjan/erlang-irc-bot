@@ -107,7 +107,7 @@ handle_cast({received_data, Data}, S = {Self, State, _Config}) ->
 handle_info({'EXIT', Pid, normal}, {Self, State=#state{conn=Pid}, Config}) ->
     gen_event:notify(State#state.plugin_mgr, {Self, offline}),
     NewPid = start_new_connection(Config),
-    {noreply, {Self, State=#state{conn=NewPid}, Config}};
+    {noreply, {Self, State#state{conn=NewPid}, Config}};
 
 
 %% handle unknown messages
