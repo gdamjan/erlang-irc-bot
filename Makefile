@@ -12,7 +12,7 @@ all: subdirs main ebin/ircbot.app
 main: ${ERL_OBJ}
 
 subdirs:
-	mkdir ${OBJ_SUBDIRS}
+	@mkdir -p ${OBJ_SUBDIRS}
 
 ebin/%.app: src/%.app
 	cp $< $@
