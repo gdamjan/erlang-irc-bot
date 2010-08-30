@@ -1,5 +1,5 @@
 .SUFFIXES: .erl .beam .yrl
-.PHONY: clean run-shell
+.PHONY: all main subdirs clean run-shell
 
 # find all .erl files in ./src/, and compile them to the same structure in ./ebin/
 ERL_SRC := $(shell find src -name *.erl)
