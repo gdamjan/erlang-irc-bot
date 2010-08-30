@@ -1,27 +1,24 @@
 .SUFFIXES: .erl .beam .yrl
+.PHONY: clean run-shell
 
-ERL_SRC := $(wildcard src/*.erl)
-ERL_OBJ := $(ERL_SRC:src/%.erl=ebin/%.beam)
-
-PLUGINS_SRC := $(wildcard src/plugins/*.erl)
-PLUGINS_OBJ := $(PLUGINS_SRC:src/plugins/%.erl=ebin/plugins/%.beam)
-
-
-all: main plugins ebin/ircbot.app
-main: ebin/ ${ERL_OBJ}
-plugins: ebin/plugins/ ${PLUGINS_OBJ}
+# find all .erl files in ./src/, and compile them to the same structure in ./ebin/
+ERL_SRC := $(shell find src -name *.erl)
+ERL_OBJ := $(patsubst src/%.erl,ebin/%.beam,${ERL_SRC})
+SRC_SUBDIRS := $(shell find src -type d)
+OBJ_SUBDIRS := $(patsubst src%,ebin%,${SRC_SUBDIRS})
 
 
-ebin/:
-	@mkdir -p ebin
-ebin/plugins/:
-	@mkdir -p ebin/plugins
+all: subdirs main ebin/ircbot.app
+main: ${ERL_OBJ}
+
+subdirs:
+	mkdir ${OBJ_SUBDIRS}
 
 ebin/%.app: src/%.app
 	cp $< $@
 
 ebin/%.beam: src/%.erl
-	erlc -o `dirname $@` $<
+	erlc -o $(dir $@) $<
 
 
 clean:
