@@ -13,13 +13,22 @@ init(_Args) ->
     {ok, dict:new()}.
 
 
-fancy_time(T) ->
-    %% FIXME: compare local time to T and return fancy time like
-    %% an hour ago, minutes ago, days ago etc..
-    "{time}".
+fancy_time({Mega,Sec,_Micro}) ->
+    {NowMega,NowSec,_NowMicro} = erlang:now(),
+    DeltaMinutes = (NowMega*1000000 - Mega*1000000 + NowSec - Sec) div 60,
+    if
+        DeltaMinutes < 2 ->
+            "just a minute ago";
+        DeltaMinutes < 80 ->
+            integer_to_list(DeltaMinutes + 1) ++ " minutes ago";
+        DeltaMinutes < 36 * 60 ->
+            integer_to_list(DeltaMinutes div 60) ++ " hours ago";
+        true ->
+            integer_to_list(DeltaMinutes div (60 * 24)) ++ " days ago"
+    end.
 
 remember(Ref, Channel, From, Msg, State) ->
-    Timestamp = 1,
+    Timestamp = erlang:now(),
     [Recepient | Message] = re:split(Msg, "[^a-zA-Z0-9^|_{}[\\]\\\\`-]", [{parts,2}]),
     Ref:send_data(["NOTICE ", From, " :ok, I'll  pass that to ", Recepient, " when he's around."]),
     {ok, dict:append(Recepient, {Timestamp, Channel, From, Message}, State)}.
