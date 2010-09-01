@@ -10,9 +10,10 @@ OBJ_SUBDIRS := $(patsubst src%,ebin%,${SRC_SUBDIRS})
 
 all: subdirs main ebin/ircbot.app
 main: ${ERL_OBJ}
+subdirs: ${OBJ_SUBDIRS}
 
-subdirs:
-	@mkdir -p ${OBJ_SUBDIRS}
+${OBJ_SUBDIRS}:
+	mkdir $@
 
 ebin/%.app: src/%.app
 	cp $< $@
