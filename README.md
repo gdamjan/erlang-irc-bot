@@ -74,3 +74,14 @@ too:
 
 I'm yet to decide if it's smart to do this, since this feature is considered
 experimental in Erlang.
+
+
+Similar projects
+________________
+
+* http://github.com/wrboyce/erb
+* http://manderlbot.org/
+* http://erlirc.com/
+* http://github.com/jimm/erlang-ircbot
+* https://bitbucket.org/john_b/erlang-ircbot
+* http://github.com/pizza/abbot
