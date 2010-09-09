@@ -70,7 +70,7 @@ code_switch(State) -> loop(State).
 
 %% debug helpers
 debug(in, Msg) ->
-    icbot_lib:debug([" IN| ", Msg]);
+    ircbot_lib:debug([" IN| ", Msg]);
 
 debug(out, Msg) ->
     ircbot_lib:debug(["OUT| ", Msg]).
