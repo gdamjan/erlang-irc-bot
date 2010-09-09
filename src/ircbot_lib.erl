@@ -1,5 +1,5 @@
--module(utils).
--author('gdamjan@gmail.com').
+-module(ircbot_lib).
+-author("gdamjan@gmail.com").
 
 -export([debug/1, irc_parse/1, url_match/1, url_match/2, url_quote/1]).
 
@@ -48,8 +48,9 @@ url_quote([C | Rest], Acc) ->
     <<Hi:4, Lo:4>> = <<C>>,
     url_quote(Rest, [hexdigit(Lo), hexdigit(Hi), ?PERCENT | Acc]).
 
-% Erlang IRC message parsing made for parsing binaries
-% http://www.irchelp.org/irchelp/rfc/rfc2812.txt
+
+%%% Erlang IRC message parsing made for parsing binaries
+%%% http://www.irchelp.org/irchelp/rfc/rfc2812.txt
 
 % if a string (a list of chars) is supplied, convert to a binary
 % this is only usefull while testing, real IRC data will always be binary

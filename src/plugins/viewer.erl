@@ -16,9 +16,9 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, Text]} ->
-            case utils:url_match(Text, "\\.pdf|\\.pps|\\.tiff|\\.tif") of
+            case ircbot_lib:url_match(Text, "\\.pdf|\\.pps|\\.tiff|\\.tif") of
                 {match, [Url]} ->
-                    Url1 = utils:url_quote(Url),
+                    Url1 = ircbot_lib:url_quote(Url),
                     Ref:send_data(["NOTICE ", Channel,
                             " :http://docs.google.com/viewer?url=", Url1]),
                     {ok, State};

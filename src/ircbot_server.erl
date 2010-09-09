@@ -99,7 +99,7 @@ handle_cast({send_data, Data}, S = {_Self, State, _Config}) ->
     {noreply, S};
 
 handle_cast({received_data, Data}, S = {Self, State, _Config}) ->
-    {match, IrcMessage} = utils:irc_parse(Data),
+    {match, IrcMessage} = ircbot_lib:irc_parse(Data),
     gen_event:notify(State#state.plugin_mgr, {in, Self, IrcMessage}), % notify all plugins
     {noreply, S}.
 

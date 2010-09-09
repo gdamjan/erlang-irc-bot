@@ -40,7 +40,7 @@ handle_event(Msg, State) ->
         % look if there's an url in the text message on the channel, and
         % remmember it
         {in, _Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, Text]} ->
-            case utils:url_match(Text) of
+            case ircbot_lib:url_match(Text) of
                 {match, [Url]} ->
                     {ok, dict:store(Channel, Url, State)};
                 _ ->
