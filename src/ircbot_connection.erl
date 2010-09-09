@@ -1,5 +1,5 @@
 -module(ircbot_connection).
--author('gdamjan@gmail.com').
+-author("gdamjan@gmail.com").
 
 -include_lib("ircbot.hrl").
 -define(CRNL, "\r\n").

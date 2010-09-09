@@ -1,6 +1,6 @@
 -module(ircbot_server).
 -behaviour(gen_server).
--author('gdamjan@gmail.com').
+-author("gdamjan@gmail.com").
 
 -include_lib("ircbot.hrl").
 -record(config, {nickname, server}).
