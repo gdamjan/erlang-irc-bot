@@ -1,3 +1,7 @@
 {nickname, "erlbot_test"}.
 {server,   {"chat.freenode.net", 6667}}.
 {channels, ["#erlbot_test"]}.
+{plugins, [
+  {'plugins.uptime', []},
+  {'plugins.rps', []}
+]}.
