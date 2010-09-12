@@ -30,7 +30,7 @@ fancy_time({Mega,Sec,_Micro}) ->
 remember(Ref, Channel, From, Msg, State) ->
     Timestamp = erlang:now(),
     [Recepient | Message] = re:split(Msg, "[^a-zA-Z0-9^|_{}[\\]\\\\`-]", [{parts,2}]),
-    Ref:send_data(["NOTICE ", From, " :ok, I'll  pass that to ", Recepient, " when he's around."]),
+    Ref:notice(From, ["ok, I'll  pass that to ", Recepient, " when he's around."]),
     {ok, dict:append(Recepient, {Timestamp, Channel, From, Message}, State)}.
 
 reminder(Ref, Nick, State) ->
@@ -39,7 +39,7 @@ reminder(Ref, Nick, State) ->
             L = dict:fetch(Nick, State),
             lists:foreach(fun ({Timestamp, Channel, From, Message}) ->
                 Msg =  [fancy_time(Timestamp), " ", From, " on ", Channel, ": ", Message],
-                Ref:send_data(["NOTICE ", Nick, " :", Msg]) end, L),
+                Ref:notice(Nick, Msg) end, L),
             {ok, dict:erase(Nick, State)};
         false ->
             {ok, State}

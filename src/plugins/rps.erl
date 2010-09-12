@@ -13,19 +13,19 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
        {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!rock">>]} ->
-            Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(rock)]),
+            Ref:privmsg(<<"#",Channel/binary>>, [Nick, play(rock)]),
             {ok, State};
        {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!paper">>]} ->
-            Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(paper)]),
+            Ref:privmsg(<<"#",Channel/binary>>, [Nick, play(paper)]),
             {ok, State};
        {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!scissors">>]} ->
-            Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(scissors)]),
+            Ref:privmsg(<<"#",Channel/binary>>, [Nick, play(scissors)]),
             {ok, State};
        {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!spock">>]} ->
-            Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(spock)]),
+            Ref:privmsg(<<"#",Channel/binary>>, [Nick, play(spock)]),
             {ok, State};
        {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!lizard">>]} ->
-            Ref:send_data(["PRIVMSG ", <<"#",Channel/binary>>, " :", Nick, play(lizard)]),
+            Ref:privmsg(<<"#",Channel/binary>>, [Nick, play(lizard)]),
             {ok, State};
         _ ->
             {ok, State}

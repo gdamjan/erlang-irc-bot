@@ -19,8 +19,7 @@ handle_event(Msg, State) ->
             case ircbot_lib:url_match(Text, "\\.pdf|\\.pps|\\.tiff|\\.tif") of
                 {match, [Url]} ->
                     Url1 = ircbot_lib:url_quote(Url),
-                    Ref:send_data(["NOTICE ", Channel,
-                            " :http://docs.google.com/viewer?url=", Url1]),
+                    Ref:notice(Channel, ["http://docs.google.com/viewer?url=", Url1]),
                     {ok, State};
                 _ ->
                     {ok, State}
