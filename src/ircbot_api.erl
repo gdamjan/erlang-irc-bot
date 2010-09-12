@@ -4,31 +4,45 @@
 -module(ircbot_api, [IrcbotRef]).
 -author("gdamjan@gmail.com").
 
--export([connect/0, disconnect/0, reconnect/0, send_data/1]).
--export([add_plugin/2, delete_plugin/2, which_plugins/0]).
+-export([connect/0, disconnect/0, reconnect/0, send_data/1, send_message/3, privmsg/2, notice/2]).
+-export([send_event/1, add_plugin/2, delete_plugin/2, which_plugins/0]).
 
 
 connect() ->
-    gen_server:call(IrcbotRef, connect).
+    gen_fsm:sync_send_event(IrcbotRef, connect).
 
 disconnect() ->
-    gen_server:call(IrcbotRef, disconnect).
+    gen_fsm:sync_send_event(IrcbotRef, disconnect).
 
 reconnect() ->
     disconnect(),
     connect().
 
+send_event(Event) ->
+    gen_fsm:send_event(IrcbotRef, Event).
+
+
 add_plugin(Plugin, Args) ->
-    gen_server:call(IrcbotRef, {add_plugin, Plugin, Args}).
+    gen_fsm:sync_send_all_state_event(IrcbotRef, {add_plugin, Plugin, Args}).
 
 delete_plugin(Plugin, Args) ->
-    gen_server:call(IrcbotRef, {delete_plugin, Plugin, Args}).
+    gen_fsm:sync_send_all_state_event(IrcbotRef, {delete_plugin, Plugin, Args}).
 
 which_plugins() ->
-    gen_server:call(IrcbotRef, which_plugins).
+    gen_fsm:sync_send_all_state_event(IrcbotRef, which_plugins).
+
 
 send_data(Data) ->
-    gen_server:cast(IrcbotRef, {send_data, Data}).
+    send_event({send_data, Data}).
+
+send_message(Cmd, Destination, Msg) ->
+    send_data([Cmd, " ", Destination, " :", Msg]).
+
+privmsg(Destination, Msg) ->
+    send_message("PRIVMSG", Destination, Msg).
+
+notice(Destination, Msg) ->
+    send_message("NOTICE", Destination, Msg).
 
 % save_state(Filename) ->
 %     State = gen_event:call(IrcbotRef, get_state),

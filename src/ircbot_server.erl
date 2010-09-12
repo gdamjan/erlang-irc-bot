@@ -1,127 +1,165 @@
 -module(ircbot_server).
--behaviour(gen_server).
 -author("gdamjan@gmail.com").
 
--include_lib("ircbot.hrl").
+-behaviour(gen_fsm).
+-include("ircbot.hrl").
+
 -record(config, {nickname, server}).
--record(state, {conn, plugin_mgr}).
+-record(slaves, {conn, plugins}).
 
+% gen_fsm callbacks
+-export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
+        terminate/3, code_change/4]).
+-export([offline/2, offline/3, connecting/2, registering/2, online/2, online/3]).
 
-%% API
+% public api
 -export([new/1, start_link/1]).
-
-%% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-         terminate/2, code_change/3]).
 
 new(Settings) ->
     {ok, Ref} = start_link(Settings),
     ircbot_api:new(Ref).
 
 start_link(Settings) ->
-    gen_server:start_link(?MODULE, Settings, []).
+    gen_fsm:start_link(?MODULE, Settings, []).
 
-
+%% internal functions
 get_config(Settings) ->
     Nick = proplists:get_value(nickname, Settings),
     {Host, Port} = proplists:get_value(server, Settings),
     #config{nickname=Nick, server={Host, Port}}.
 
-%% Start the plugin manager (gen_event)
-init_plugins(Settings) ->
-    {ok, Plugins} = gen_event:start_link(),
-    Channels = proplists:get_value(channels, Settings, []),
-    gen_event:add_handler(Plugins, pong_plugin, []),
-    gen_event:add_handler(Plugins, ctcp_plugin, []),
-    gen_event:add_handler(Plugins, channels_plugin, Channels),
-    lists:foreach(
-        fun ({Plugin, Args}) ->
-            gen_event:add_handler(Plugins, Plugin, Args)
-        end,
-        proplists:get_value(plugins, Settings, [])
-    ),
-    {ok, Plugins}.
+start_connection({Host, Port}) ->
+    Self = ircbot_api:new(self()),
+    ircbot_connection:start_link(Self, Host, Port).
+
+send(Conn, Data) ->
+    Conn ! {send, Data}.
+
+quit(Conn) ->
+    send(Conn, ["QUIT :", ?QUITMSG]),
+    Conn ! quit.
+
+registerize(Conn, Nickname) ->
+    send(Conn, ["NICK ", Nickname]),
+    send(Conn, ["USER ", Nickname, " 8 * :", ?REALNAME]).
 
 
-%% gen_server callbacks
+%% gen_fsm callbacks
 init(Settings) ->
     process_flag(trap_exit, true),
+    {ok, Plugins} = ircbot_plugins:start_link(Settings),
     Config = get_config(Settings),
-    {ok, Plugins} = init_plugins(Settings),
-    State = #state{conn=none, plugin_mgr=Plugins},
+    Slaves = #slaves{plugins=Plugins},
+    {ok, offline, {Slaves, Config}}.
+
+
+offline(connect, _From, {Slaves, Config}) ->
+    io:format("connect: ~p~n", [Slaves]),
+    Pid = start_connection(Config#config.server),
+    {reply, ok, connecting, {Slaves#slaves{conn=Pid}, Config}};
+
+offline(_, _, S) ->
+    {reply, ok, offline, S}.
+
+offline(_, S) ->
+    {next_state, offline, S}.
+
+
+connecting({connected, Pid}, {Slaves, Config}) ->
+    registerize(Pid, Config#config.nickname),
+    {next_state, registering, {Slaves#slaves{conn=Pid}, Config}, 30000};
+
+connecting(Event, S) ->
+    io:format("FIXME[connecting]: ~p~n", [Event]),
+    {next_state, offline, S}.
+
+
+registering({received, Line}, {Slaves, Config}) ->
+    {match, IrcMessage} = ircbot_lib:irc_parse(Line),
+    case IrcMessage of
+        [_, _, <<"001">>, _, _] ->
+            Self = ircbot_api:new(self()),
+            ircbot_plugins:notify(Slaves#slaves.plugins, {Self, online}),
+            ircbot_plugins:notify(Slaves#slaves.plugins, {in, Self, IrcMessage}),
+            {next_state, online, {Slaves, Config}};
+        _ ->
+            {next_state, registering, {Slaves, Config}, 30000}
+    end;
+
+registering(Event, S) ->
+    io:format("FIXME[registering]: ~p~n", [Event]),
+    {next_state, offline, S}.
+
+
+online({send_data, Data}, {Slaves, Config}) ->
+    Conn = Slaves#slaves.conn,
+    send(Conn, Data),
+    {next_state, online, {Slaves, Config}};
+
+online({received, Line}, {Slaves, Config}) ->
+    {match, IrcMessage} = ircbot_lib:irc_parse(Line),
     Self = ircbot_api:new(self()),
-    {ok, {Self, State, Config}}.
+    ircbot_plugins:notify(Slaves#slaves.plugins, {in, Self, IrcMessage}), % notify all plugins
+    {next_state, online, {Slaves, Config}}.
 
-start_new_connection(Config) ->
-    {Host, Port} = Config#config.server,
-    ircbot_connection:start_link(Host, Port).
-
-handle_call(connect, _From, {Self, State, Config}) ->
-    Pid = start_new_connection(Config),
-    {reply, ok, {Self, State#state{conn=Pid}, Config}};
-
-handle_call(disconnect, _From, S = {_Self, State, _Config}) ->
-    Conn = State#state.conn,
-    Conn ! {send_data, ["QUIT :", ?QUITMSG]},
-    Conn ! quit,
-    {reply, ok, S};
+online(disconnect, _From, {Slaves, Config}) ->
+    Self = ircbot_api:new(self()),
+    ircbot_plugins:notify(Slaves#slaves.plugins, {Self, offline}),
+    Conn = Slaves#slaves.conn,
+    quit(Conn),
+    {reply, ok, offline, {Slaves, Config}}.
 
 
-handle_call({add_plugin, Plugin, Args}, _From, S = {_Self, State, _Config}) ->
-    case gen_event:add_handler(State#state.plugin_mgr, Plugin, Args) of
-        ok ->
-            ok;
-        {'EXIT', Reason} ->
-            error_logger:error_msg("Problem loading plugin ~p ~p ~n", [Plugin, Reason]);
-        Other ->
-            error_logger:error_msg("Loading ~p reports ~p ~n", [Plugin, Other])
-    end,
-    {reply, ok, S};
+%% Plugin managemenet
+handle_sync_event({add_plugin, Plugin, Args}, _From, StateName, StateData) ->
+    {Slaves, _Config} = StateData,
+    ircbot_plugins:add_handler(Slaves#slaves.plugins, Plugin, Args),
+    {reply, ok, StateName, StateData};
 
-handle_call({delete_plugin, Plugin, Args}, _From, S = {_Self, State, _Config}) ->
-    gen_event:delete_handler(State#state.plugin_mgr, Plugin, Args),
-    {reply, ok, S};
+handle_sync_event({delete_plugin, Plugin, Args}, _From, StateName, StateData) ->
+    {Slaves, _Config} = StateData,
+    ircbot_plugins:delete_handler(Slaves#slaves.plugins, Plugin, Args),
+    {reply, ok, StateName, StateData};
 
-handle_call(which_plugins, _From, S = {_Self, State, _Config}) ->
-    R = gen_event:which_handlers(State#state.plugin_mgr),
-    {reply, R, S}.
+handle_sync_event(which_plugins, _From, StateName, StateData) ->
+    {Slaves, _Config} = StateData,
+    Reply = ircbot_plugins:which_handlers(Slaves#slaves.plugins),
+    {reply, Reply, StateName, StateData}.
 
-
-handle_cast({connect_success, Conn}, {Self, State, Config}) ->
-    Conn ! {send_data, ["NICK ", Config#config.nickname]},
-    Conn ! {send_data, ["USER ", Config#config.nickname, " 8 * :", ?REALNAME]},
-    gen_event:notify(State#state.plugin_mgr, {Self, online}),
-    {noreply, {Self, State#state{conn=Conn}, Config}};
-
-handle_cast({send_data, Data}, S = {_Self, State, _Config}) ->
-    Conn = State#state.conn,
-    Conn ! {send_data, Data},
-    {noreply, S};
-
-handle_cast({received_data, Data}, S = {Self, State, _Config}) ->
-    {match, IrcMessage} = ircbot_lib:irc_parse(Data),
-    gen_event:notify(State#state.plugin_mgr, {in, Self, IrcMessage}), % notify all plugins
-    {noreply, S}.
 
 %% handle the EXIT of the connection process
-handle_info({'EXIT', Pid, normal}, {Self, State=#state{conn=Pid}, Config}) ->
-    gen_event:notify(State#state.plugin_mgr, {Self, offline}),
-    NewPid = start_new_connection(Config),
-    {noreply, {Self, State#state{conn=NewPid}, Config}};
+handle_info({'EXIT', Pid, normal}, offline, {Slaves=#slaves{conn=Pid}, Config}) ->
+    io:format("Exit in offline: ~p~n", [Pid]),
+    {next_state, offline, {Slaves, Config}};
+
+handle_info({'EXIT', Pid, normal}, online, {Slaves=#slaves{conn=Pid}, Config}) ->
+    io:format("Exit in online: ~p~n", [Pid]),
+    Self = ircbot_api:new(self()),
+    ircbot_plugins:notify(Slaves#slaves.plugins, {Self, offline}),
+    NewPid = start_connection(Config#config.server),
+    {next_state, connecting, {Slaves#slaves{conn=NewPid}, Config}};
+
+handle_info({'EXIT', Pid, normal}, Name, {Slaves=#slaves{conn=Pid}, Config}) ->
+    io:format("Exit in ~p: ~p~n", [Name, Pid]),
+    NewPid = start_connection(Config#config.server),
+    {next_state, connecting, {Slaves#slaves{conn=NewPid}, Config}};
 
 
 %% handle unknown messages
-handle_info(Msg, State) ->
-    io:format("UNK: ~w~n", [Msg]),
-    {noreply, State}.
+handle_info(Msg, StateName, StateData) ->
+    io:format("UNK: ~p | ~p | ~w~n", [StateName, StateData, Msg]),
+    {next_state, StateName, StateData}.
 
-code_change(_OldVsn, {Self, State, Config}, _Extra) ->
-    if
-        is_pid(State#state.conn) ->
-            State#state.conn ! code_switch;
-        true ->
-            ok
-    end,
-    {ok, {Self, State, Config}}.
+handle_event(_Event, StateName, StateData) ->
+    {next_state, StateName, StateData}.
 
-terminate(_Reason, _State) -> ok.
+
+code_change(_OldVsn, offline, {Slaves, Config}, _Extra) ->
+    {ok, offline, {Slaves, Config}};
+
+code_change(_OldVsn, StateName, {Slaves, Config}, _Extra) ->
+    Slaves#slaves.conn ! code_switch,
+    {ok, StateName, {Slaves, Config}}.
+
+
+terminate(_Reason, _StateName, _StateData) -> ok.
