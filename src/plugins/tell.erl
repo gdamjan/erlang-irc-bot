@@ -39,7 +39,7 @@ reminder(Ref, Nick, State) ->
             L = dict:fetch(Nick, State),
             lists:foreach(fun ({Timestamp, Channel, From, Message}) ->
                 Msg =  [fancy_time(Timestamp), " ", From, " on ", Channel, ": ", Message],
-                Ref:notice(Nick, Msg) end, L),
+                Ref:privmsg(Nick, Msg) end, L),
             {ok, dict:erase(Nick, State)};
         false ->
             {ok, State}
