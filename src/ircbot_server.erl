@@ -110,23 +110,6 @@ online(disconnect, _From, {Slaves, Config}) ->
     {reply, ok, offline, {Slaves, Config}}.
 
 
-%% Plugin managemenet
-handle_sync_event({add_plugin, Plugin, Args}, _From, StateName, StateData) ->
-    {Slaves, _Config} = StateData,
-    ircbot_plugins:add_handler(Slaves#slaves.plugins, Plugin, Args),
-    {reply, ok, StateName, StateData};
-
-handle_sync_event({delete_plugin, Plugin, Args}, _From, StateName, StateData) ->
-    {Slaves, _Config} = StateData,
-    ircbot_plugins:delete_handler(Slaves#slaves.plugins, Plugin, Args),
-    {reply, ok, StateName, StateData};
-
-handle_sync_event(which_plugins, _From, StateName, StateData) ->
-    {Slaves, _Config} = StateData,
-    Reply = ircbot_plugins:which_handlers(Slaves#slaves.plugins),
-    {reply, Reply, StateName, StateData}.
-
-
 %% handle the EXIT of the connection process
 handle_info({'EXIT', Pid, normal}, offline, {Slaves=#slaves{conn=Pid}, Config}) ->
     io:format("Exit in offline: ~p~n", [Pid]),
@@ -153,7 +136,24 @@ handle_info(Msg, StateName, StateData) ->
 handle_event(_Event, StateName, StateData) ->
     {next_state, StateName, StateData}.
 
+%% Plugin managemenet
+handle_sync_event({add_plugin, Plugin, Args}, _From, StateName, StateData) ->
+    {Slaves, _Config} = StateData,
+    ircbot_plugins:add_handler(Slaves#slaves.plugins, Plugin, Args),
+    {reply, ok, StateName, StateData};
 
+handle_sync_event({delete_plugin, Plugin, Args}, _From, StateName, StateData) ->
+    {Slaves, _Config} = StateData,
+    ircbot_plugins:delete_handler(Slaves#slaves.plugins, Plugin, Args),
+    {reply, ok, StateName, StateData};
+
+handle_sync_event(which_plugins, _From, StateName, StateData) ->
+    {Slaves, _Config} = StateData,
+    Reply = ircbot_plugins:which_handlers(Slaves#slaves.plugins),
+    {reply, Reply, StateName, StateData}.
+
+
+%% OTP handlers
 code_change(_OldVsn, offline, {Slaves, Config}, _Extra) ->
     {ok, offline, {Slaves, Config}};
 
