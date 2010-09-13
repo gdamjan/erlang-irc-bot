@@ -10,7 +10,8 @@
 % gen_fsm callbacks
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
         terminate/3, code_change/4]).
--export([offline/2, offline/3, connecting/2, registering/2, online/2, online/3]).
+-export([offline/2, offline/3, connecting/2, registering/2,
+        online/2, online/3, disconnecting/2, disconnecting/3]).
 
 % public api
 -export([new/1, start_link/1]).
@@ -102,17 +103,32 @@ online({received, Line}, {Slaves, Config}) ->
     ircbot_plugins:notify(Slaves#slaves.plugins, {in, Self, IrcMessage}), % notify all plugins
     {next_state, online, {Slaves, Config}}.
 
-online(disconnect, _From, {Slaves, Config}) ->
+online(disconnect, From, {Slaves, Config}) ->
     Self = ircbot_api:new(self()),
     ircbot_plugins:notify(Slaves#slaves.plugins, {Self, offline}),
     Conn = Slaves#slaves.conn,
     quit(Conn),
-    {reply, ok, offline, {Slaves, Config}}.
+    {next_state, disconnecting, [From, {Slaves, Config}], 50000}.
+
+disconnecting(timeout, [From, {Slaves, Config}]) ->
+    gen_fsm:reply(From, timeout),
+    {next_state, offline, {Slaves, Config}};
+
+disconnecting(_, S) ->
+    {next_state, disconnecting, S}.
+
+disconnecting(_, _, S) ->
+    {reply, ok, disconnecting, S}.
 
 
 %% handle the EXIT of the connection process
 handle_info({'EXIT', Pid, normal}, offline, {Slaves=#slaves{conn=Pid}, Config}) ->
     io:format("Exit in offline: ~p~n", [Pid]),
+    {next_state, offline, {Slaves, Config}};
+
+handle_info({'EXIT', Pid, normal}, disconnecting, [From, {Slaves=#slaves{conn=Pid}, Config}]) ->
+    io:format("Exit in disconnecting: ~p~n", [Pid]),
+    gen_fsm:reply(From, ok),
     {next_state, offline, {Slaves, Config}};
 
 handle_info({'EXIT', Pid, normal}, online, {Slaves=#slaves{conn=Pid}, Config}) ->
