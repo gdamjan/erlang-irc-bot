@@ -11,14 +11,9 @@ init(_Args) ->
 
 handle_event(Msg, State) ->
     case Msg of
-        {in, _Ref, [Server, _, <<"001">>, _Nick, _]} ->
-            {ok, Server};
         {in, Ref, [<<>>,<<>>,<<"PING">>, Server]} ->
-            Ref:send_data([<<"PONG :">>, Server]),
+            Ref:pong(Server),
             {ok, Server};
-        {keepalive, Ref} ->
-            Ref:send_data(["PING :", State]),
-            {ok, State};
         _ ->
             {ok, State}
     end.
