@@ -54,10 +54,10 @@ init(Settings) ->
     {ok, offline, {Slaves, Config}}.
 
 
-offline(connect, _From, {Slaves, Config}) ->
+offline(connect, From, {Slaves, Config}) ->
     io:format("connect: ~p~n", [Slaves]),
     Pid = start_connection(Config#config.server),
-    {reply, ok, connecting, {Slaves#slaves{conn=Pid}, Config}};
+    {next_state, connecting, [From, {Slaves#slaves{conn=Pid}, Config}]};
 
 offline(_, _, S) ->
     {reply, ok, offline, S}.
@@ -66,7 +66,8 @@ offline(_, S) ->
     {next_state, offline, S}.
 
 
-connecting({connected, Pid}, {Slaves, Config}) ->
+connecting({connected, Pid}, [From, {Slaves, Config}]) ->
+    gen_fsm:reply(From, ok),
     registerize(Pid, Config#config.nickname),
     {next_state, registering, {Slaves#slaves{conn=Pid}, Config}, 30000};
 
