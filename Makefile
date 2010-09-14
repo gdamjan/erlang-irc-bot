@@ -8,14 +8,13 @@ SRC_SUBDIRS := $(shell find src -type d)
 OBJ_SUBDIRS := $(patsubst src%,ebin%,${SRC_SUBDIRS})
 
 
-all: subdirs main ebin/ircbot.app
-main: ${ERL_OBJ}
-subdirs: ${OBJ_SUBDIRS}
+all: compile ebin/ircbot.app
+compile: ${OBJ_SUBDIRS} ${ERL_OBJ}
 
 ${OBJ_SUBDIRS}:
 	mkdir $@
 
-ebin/%.app: src/%.app
+ebin/%.app: src/%.app.src
 	cp $< $@
 
 ebin/%.beam: src/%.erl
