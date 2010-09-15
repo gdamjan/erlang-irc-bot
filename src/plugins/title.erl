@@ -67,7 +67,8 @@ fetch(Url, Ref, Channel) ->
 
 fetcher(Url, Callback) ->
     Url1 = sanitize_url(Url),
-    {ok, RequestId} = http:request(get, {Url1, []}, [], [{sync, false}, {stream, self}]),
+    Headers = [{"User-Agent", "Mozilla/5.0 (erlang-irc-bot)"}],
+    {ok, RequestId} = http:request(get, {Url1, Headers}, [], [{sync, false}, {stream, self}]),
     receive_chunk(RequestId, Callback, [], 10000).
 
 %% callback function called as chunks from http are received
