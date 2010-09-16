@@ -68,6 +68,9 @@ offline(_, S) ->
 
 connecting({connected, Pid}, [From, {Slaves, Config}]) ->
     gen_fsm:reply(From, ok),
+    connecting({connected, Pid}, {Slaves, Config});
+
+connecting({connected, Pid}, {Slaves, Config}) ->
     registerize(Pid, Config#config.nickname),
     {next_state, registering, {Slaves#slaves{conn=Pid}, Config}, 30000};
 
