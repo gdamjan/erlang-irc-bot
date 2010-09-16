@@ -61,8 +61,8 @@ will handle all the details to run the new code without even disconnecting.
 
 [code switching]: http://en.wikipedia.org/wiki/Erlang_%28programming_language%29#Hot_code_loading_and_modules
 
-Experimental OOP API
---------------------
+Experimental OOP API (*)
+------------------------
 
 Using the parametrized module support in Erlang we can do something like this
 too:
@@ -73,7 +73,9 @@ too:
     IrcBot:add_plugin(plugins.rps, []).
 
 I'm yet to decide if it's smart to do this, since this feature is considered
-experimental in Erlang.
+experimental in Erlang. (*) The parametrized module feature is becoming
+officially supported in Erlang R14, so I'm deciding that it will be the official
+API of this bot.
 
 
 Similar projects
@@ -85,3 +87,4 @@ ________________
 * http://github.com/jimm/erlang-ircbot
 * https://bitbucket.org/john_b/erlang-ircbot
 * http://github.com/pizza/abbot
+* http://code.google.com/p/madcow/
