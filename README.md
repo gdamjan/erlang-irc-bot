@@ -1,4 +1,4 @@
-An extendable ircbot written in Erlang
+An extensible ircbot written in Erlang
 ======================================
 
 It all started when I decided I need to learn Erlang. At the same time I needed
@@ -10,8 +10,8 @@ commits][commits].
 
 [commits]: http://github.com/gdamjan/erlang-irc-bot/commits/master
 
-Now that the bot is extendable by plugins, and quite stable it's becoming prety
-usefull. It still needs improvements and is work in progress, but plugins can
+Now that the bot is extensible by plug-ins, and quite stable it's becoming pretty
+useful. It still needs improvements and is work in progress, but plug-ins can
 be written for anything.
 
 
@@ -48,7 +48,7 @@ Once in the Erlang REPL you can start the bot with:
     gen_server:call(IrcBot, {add_plugin, 'plugins.rps', []}).
 
 You can make changes to the source code & plugins while the bot is running.
-Just hit "make" in another terminal and then, if everything is ok, in the erlang REPL run:
+Just hit "make" in another terminal and then, if everything is ok, in the Erlang REPL run:
 
     l('plugins.rps').
 
@@ -64,7 +64,7 @@ will handle all the details to run the new code without even disconnecting.
 Experimental OOP API
 --------------------
 
-Using the parameterized module support in Erlang we can do something like this
+Using the parametrized module support in Erlang we can do something like this
 too:
 
     {ok, Settings} = file:consult("settings.cfg").
