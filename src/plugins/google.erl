@@ -11,6 +11,8 @@
 -import(http).
 -import(inets).
 -import(edoc_lib).
+% unicode is only available from Erlang R13
+-import(unicode).
 
 init(_Args) ->
     inets:start(),
@@ -37,7 +39,7 @@ fetch(Query, Ref, Channel) ->
 
 gfl(Query, Callback) ->
     Headers = [{"User-Agent", "Mozilla/5.0 (erlang-irc-bot)"}],
-    Q = edoc_lib:escape_uri(binary_to_list(Query)),
+    Q = edoc_lib:escape_uri(unicode:characters_to_list(Query)),
     Url = "http://www.google.com/search?btnI=I%27m+Feeling+Lucky&q=" ++ Q,
     case http:request(get, {Url, Headers}, [{autoredirect, false}], []) of
         {ok, {{_,302,_}, ResponseHeaders, _}} ->
