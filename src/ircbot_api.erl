@@ -5,7 +5,7 @@
 -author("gdamjan@gmail.com").
 
 -export([connect/0, disconnect/0, reconnect/0, send_data/1, send_message/3]).
--export([privmsg/2, notice/2, join/1, ping/1, pong/1]).
+-export([privmsg/2, notice/2, join/1, part/1, ping/1, pong/1]).
 -export([send_event/1, add_plugin/2, delete_plugin/2, which_plugins/0]).
 
 
@@ -47,6 +47,9 @@ notice(Destination, Msg) ->
 
 join(Channel) ->
     send_data(["JOIN ", Channel]).
+
+part(Channel) ->
+    send_data(["PART ", Channel]).
 
 ping(Server) ->
     send_data(["PING :", Server]).
