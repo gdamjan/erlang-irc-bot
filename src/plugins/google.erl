@@ -10,7 +10,6 @@
 -import(proplists).
 -import(http).
 -import(inets).
--import(edoc_lib).
 % unicode is only available from Erlang R13
 -import(unicode).
 
@@ -39,7 +38,7 @@ fetch(Query, Ref, Channel) ->
 
 gfl(Query, Callback) ->
     Headers = [{"User-Agent", "Mozilla/5.0 (erlang-irc-bot)"}],
-    Q = edoc_lib:escape_uri(unicode:characters_to_list(Query)),
+    Q = escape_uri(Query),
     Url = "http://www.google.com/search?btnI=I%27m+Feeling+Lucky&q=" ++ Q,
     case http:request(get, {Url, Headers}, [{autoredirect, false}], []) of
         {ok, {{_,302,_}, ResponseHeaders, _}} ->
@@ -49,3 +48,44 @@ gfl(Query, Callback) ->
         _ ->
             Callback("search error")
     end.
+
+%% ---------------------------------------------------------------------
+%% URI and Internet
+
+%% This is a conservative URI escaping, which escapes anything that may
+%% not appear in an NMTOKEN ([a-zA-Z0-9]|'.'|'-'|'_'), including ':'.
+%% Characters are first encoded in UTF-8.
+%%
+%% Note that this should *not* be applied to complete URI, but only to
+%% segments that may need escaping, when forming a complete URI.
+%%
+%% it takes a UTF-8 binary or a string/list as input and returns a string/list.
+
+escape_uri(S) when is_list(S) ->
+    escape_uri(unicode:characters_to_binary(S));
+escape_uri(<<C:8, Cs/binary>>) when C >= $a, C =< $z ->
+    [C | escape_uri(Cs)];
+escape_uri(<<C:8, Cs/binary>>) when C >= $A, C =< $Z ->
+    [C | escape_uri(Cs)];
+escape_uri(<<C:8, Cs/binary>>) when C >= $0, C =< $9 ->
+    [C | escape_uri(Cs)];
+escape_uri(<<C:8, Cs/binary>>) when C == $. ->
+    [C | escape_uri(Cs)];
+escape_uri(<<C:8, Cs/binary>>) when C == $- ->
+    [C | escape_uri(Cs)];
+escape_uri(<<C:8, Cs/binary>>) when C == $_ ->
+    [C | escape_uri(Cs)];
+escape_uri(<<C:8, Cs/binary>>) ->
+    [ escape_byte(C) | escape_uri(Cs)];
+escape_uri(<<>>) ->
+    [].
+
+escape_byte(C) ->
+    "%" ++ hex_octet(C).
+
+hex_octet(N) when N =< 9 ->
+    [$0 + N];
+hex_octet(N) when N > 15 ->
+    hex_octet(N bsr 4) ++ hex_octet(N band 15);
+hex_octet(N) ->
+    [N - 10 + $a].
