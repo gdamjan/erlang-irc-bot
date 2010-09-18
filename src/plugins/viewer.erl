@@ -18,7 +18,7 @@ handle_event(Msg, State) ->
         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, Text]} ->
             case ircbot_lib:url_match(Text, "\\.pdf|\\.pps|\\.tiff|\\.tif") of
                 {match, [Url]} ->
-                    Url1 = ircbot_lib:url_quote(Url),
+                    Url1 = ircbot_lib:escape_uri(Url),
                     Ref:notice(Channel, ["http://docs.google.com/viewer?url=", Url1]),
                     {ok, State};
                 _ ->

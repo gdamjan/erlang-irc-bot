@@ -1,7 +1,7 @@
 -module(ircbot_lib).
 -author("gdamjan@gmail.com").
 
--export([debug/1, irc_parse/1, url_match/1, url_match/2, url_quote/1]).
+-export([debug/1, irc_parse/1, url_match/1, url_match/2, escape_uri/1, url_encode/1]).
 
 debug(Msg) ->
     case catch io:format("~ts~n", [Msg]) of
@@ -23,7 +23,7 @@ url_match(Line, Suffix) ->
 url_match(Line) ->
     url_match(Line, "").
 
-%% Stolen from mochiweb
+%% Stolen from mochiweb and stackoverflow and erlang otp sources
 -define(PERCENT, 37).  % $\%
 -define(FULLSTOP, 46). % $\.
 -define(QS_SAFE(C), ((C >= $a andalso C =< $z) orelse
@@ -35,19 +35,33 @@ url_match(Line) ->
 hexdigit(C) when C < 10 -> $0 + C;
 hexdigit(C) when C < 16 -> $A + (C - 10).
 
-url_quote(Binary) when is_binary(Binary) ->
-    url_quote(binary_to_list(Binary));
-url_quote(String) ->
-    url_quote(String, []).
-
-url_quote([], Acc) ->
-    lists:reverse(Acc);
-url_quote([C | Rest], Acc) when ?QS_SAFE(C) ->
-    url_quote(Rest, [C | Acc]);
-url_quote([C | Rest], Acc) ->
+escape_byte(C) ->
     <<Hi:4, Lo:4>> = <<C>>,
-    url_quote(Rest, [hexdigit(Lo), hexdigit(Hi), ?PERCENT | Acc]).
+    [?PERCENT, hexdigit(Hi), hexdigit(Lo)].
 
+escape_uri(S) when is_list(S) ->
+    escape_uri(unicode:characters_to_binary(S));
+escape_uri(Bin) ->
+    escape_uri(Bin, "").
+
+escape_uri(<<C:8, Cs/binary>>, Acc) when ?QS_SAFE(C) ->
+    escape_uri(Cs, Acc ++ [C]);
+escape_uri(<<C:8, Cs/binary>>, Acc) ->
+    escape_uri(Cs, Acc ++ escape_byte(C));
+escape_uri(<<>>, Acc) ->
+    Acc.
+
+url_encode(Data) ->
+    url_encode(Data,"").
+
+url_encode([], Acc) ->
+    Acc;
+
+url_encode([{Key,Value} | R], "") ->
+    url_encode(R, escape_uri(Key) ++ "=" ++ escape_uri(Value));
+
+url_encode([{Key,Value} | R], Acc) ->
+    url_encode(R, Acc ++ "&" ++ escape_uri(Key) ++ "=" ++ escape_uri(Value)).
 
 %%% Erlang IRC message parsing made for parsing binaries
 %%% http://www.irchelp.org/irchelp/rfc/rfc2812.txt
