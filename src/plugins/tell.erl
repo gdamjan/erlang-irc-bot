@@ -7,7 +7,7 @@
 -import(re).
 -import(dict).
 -import(lists).
-
+-import(string).
 
 init(_Args) ->
     {ok, dict:new()}.
@@ -27,20 +27,22 @@ fancy_time({Mega,Sec,_Micro}) ->
             integer_to_list(DeltaMinutes div (60 * 24)) ++ " days ago"
     end.
 
-remember(Ref, Channel, From, Msg, State) ->
+remember(Ref, Channel, Sender, Msg, State) ->
     Timestamp = erlang:now(),
     [Recepient | Message] = re:split(Msg, "[^a-zA-Z0-9^|_{}[\\]\\\\`-]", [{parts,2}]),
-    Ref:notice(From, ["ok, I'll  pass that to ", Recepient, " when he's around."]),
-    {ok, dict:append(Recepient, {Timestamp, Channel, From, Message}, State)}.
+    Ref:notice(Sender, ["ok, I'll  pass that to ", Recepient, " when he's around."]),
+    Key = string:to_lower(binary_to_list(Recepient)), 
+    {ok, dict:append(Key, {Timestamp, Channel, Sender, Message}, State)}.
 
 reminder(Ref, Nick, State) ->
-    case dict:is_key(Nick, State) of
+    Key = string:to_lower(binary_to_list(Nick)),
+    case dict:is_key(Key, State) of
         true ->
-            L = dict:fetch(Nick, State),
+            L = dict:fetch(Key, State),
             lists:foreach(fun ({Timestamp, Channel, From, Message}) ->
                 Msg =  [fancy_time(Timestamp), " ", From, " on ", Channel, ": ", Message],
                 Ref:privmsg(Nick, Msg) end, L),
-            {ok, dict:erase(Nick, State)};
+            {ok, dict:erase(Key, State)};
         false ->
             {ok, State}
     end.
