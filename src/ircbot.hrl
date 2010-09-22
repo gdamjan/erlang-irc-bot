@@ -14,7 +14,7 @@
    proplist_to_record(Record, Proplist) ->
        Fields = record_info(fields, Record),
        [Tag| Values] = tuple_to_list(#Record{}),
-       Defaults = lists:zip([Tag|Fields], [Tag|Values]),
+       Defaults = lists:zip(Fields, Values),
        L = lists:map(fun ({K,V}) -> proplists:get_value(K, Proplist, V) end, Defaults),
-       list_to_tuple(L)
+       list_to_tuple([Tag|L])
 ).
