@@ -55,7 +55,6 @@ init(Settings) ->
 
 
 offline(connect, From, {Slaves, Config}) ->
-    io:format("connect: ~p~n", [Slaves]),
     Pid = start_connection(Config#config.server),
     {next_state, connecting, [From, {Slaves#slaves{conn=Pid}, Config}]};
 
@@ -127,7 +126,6 @@ disconnecting(_, _, S) ->
 
 %% handle the EXIT of the connection process
 handle_info({'EXIT', Pid, normal}, offline, {Slaves=#slaves{conn=Pid}, Config}) ->
-    io:format("Exit in offline: ~p~n", [Pid]),
     {next_state, offline, {Slaves, Config}};
 
 handle_info({'EXIT', Pid, normal}, disconnecting, [From, {Slaves=#slaves{conn=Pid}, Config}]) ->
