@@ -4,13 +4,16 @@
 -module(ircbot_api, [IrcbotRef]).
 -author("gdamjan@gmail.com").
 
--export([connect/0, disconnect/0, reconnect/0, send_data/1, send_message/3]).
+-export([connect/0, connect/1, disconnect/0, reconnect/0, send_data/1, send_message/3]).
 -export([privmsg/2, notice/2, join/1, part/1, ping/1, pong/1]).
 -export([send_event/1, add_plugin/2, delete_plugin/2, which_plugins/0]).
 
 
 connect() ->
-    gen_fsm:sync_send_event(IrcbotRef, connect).
+    connect(infinity).
+
+connect(Timeout) ->
+    gen_fsm:sync_send_event(IrcbotRef, connect, Timeout).
 
 disconnect() ->
     gen_fsm:sync_send_event(IrcbotRef, disconnect).
