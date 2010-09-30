@@ -7,19 +7,24 @@
 -record(config, {nickname, server}).
 -record(slaves, {conn, plugins}).
 
-% gen_fsm callbacks
+%%% gen_fsm callbacks
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
         terminate/3, code_change/4]).
 -export([offline/2, offline/3, connecting/2, registering/2,
         online/2, online/3, disconnecting/2, disconnecting/3]).
 
-% public api
--export([new/1, start_link/1]).
+%%% public api
+-export([new/1, start/1, start_link/1]).
 
+% api to use in the shell
 new(Settings) ->
-    {ok, Ref} = start_link(Settings),
+    {ok, Ref} = start(Settings),
     ircbot_api:new(Ref).
 
+start(Settings) ->
+    gen_fsm:start(?MODULE, Settings, []).
+
+%% api for use in supervisors
 start_link(Settings) ->
     gen_fsm:start_link(?MODULE, Settings, []).
 
