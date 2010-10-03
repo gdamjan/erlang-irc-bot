@@ -88,3 +88,4 @@ ________________
 * https://bitbucket.org/john_b/erlang-ircbot
 * http://github.com/pizza/abbot
 * http://code.google.com/p/madcow/
+* http://www.otfbot.org/
