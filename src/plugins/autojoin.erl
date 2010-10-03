@@ -11,8 +11,8 @@ init(_Args) ->
 
 handle_event(Msg, State) ->
     case Msg of
-        {in, Ref, [_Sender, _User, <<"INVITE">>, _Nick, Channel]} ->
-            Ref:join(Channel);
+        {in, Ref, [_Sender, _User, <<"INVITE">>, _Nick, <<"#",Channel/binary>>]} ->
+            Ref:join(<<"#",Channel/binary>>);
         _ ->
             ok
     end,

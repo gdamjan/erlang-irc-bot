@@ -18,8 +18,8 @@ uptime() ->
 
 handle_event(Msg, State) ->
     case Msg of
-       {in, Ref, [_Sender, _Name, <<"PRIVMSG">>, <<Channel/binary>>, <<"!uptime">>]} ->
-            Ref:privmsg(Channel, uptime()),
+       {in, Ref, [_Sender, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!uptime">>]} ->
+            Ref:privmsg(<<"#",Channel/binary>>, uptime()),
             {ok, State};
         _ ->
             {ok, State}

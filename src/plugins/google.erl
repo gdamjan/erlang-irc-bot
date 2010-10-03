@@ -15,11 +15,11 @@ init(_Args) ->
 
 handle_event(Msg, State) ->
     case Msg of
-        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!g ", Query/binary>>]} ->
-            fetch(Query, Ref, Channel),
+        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!g ", Query/binary>>]} ->
+            fetch(Query, Ref, <<"#",Channel/binary>>),
             {ok, State};
-         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!google ", Query/binary>>]} ->
-            fetch(Query, Ref, Channel),
+         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!google ", Query/binary>>]} ->
+            fetch(Query, Ref, <<"#",Channel/binary>>),
             {ok, State};
         _ ->
             {ok, State}

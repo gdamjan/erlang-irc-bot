@@ -24,25 +24,25 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
         % explicit command to fetch a web page title
-        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!t ", Url/binary>>]} ->
-            fetch(Url, Ref, Channel),
+        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!t ", Url/binary>>]} ->
+            fetch(Url, Ref, <<"#",Channel/binary>>),
             {ok, State};
-         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title ", Url/binary>>]} ->
-            fetch(Url, Ref, Channel),
+         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!title ", Url/binary>>]} ->
+            fetch(Url, Ref, <<"#",Channel/binary>>),
             {ok, State};
         % fetch the title of the last url that appeared on the channel
-        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!t">>]} ->
-            NewState = fetch_last(State, Ref, Channel),
+        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!t">>]} ->
+            NewState = fetch_last(State, Ref, <<"#",Channel/binary>>),
             {ok, NewState};
-        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title">>]} ->
-            NewState = fetch_last(State, Ref, Channel),
+        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!title">>]} ->
+            NewState = fetch_last(State, Ref, <<"#",Channel/binary>>),
             {ok, NewState};
         % look if there's an url in the text message on the channel, and
         % remmember it
-        {in, _Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, Text]} ->
+        {in, _Ref, [_Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, Text]} ->
             case ircbot_lib:url_match(Text) of
                 {match, [Url]} ->
-                    {ok, dict:store(Channel, Url, State)};
+                    {ok, dict:store(<<"#",Channel/binary>>, Url, State)};
                 _ ->
                     {ok, State}
             end;
