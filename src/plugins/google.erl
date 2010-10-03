@@ -18,6 +18,9 @@ handle_event(Msg, State) ->
         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!g ", Query/binary>>]} ->
             fetch(Query, Ref, Channel),
             {ok, State};
+         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!google ", Query/binary>>]} ->
+            fetch(Query, Ref, Channel),
+            {ok, State};
         _ ->
             {ok, State}
     end.
