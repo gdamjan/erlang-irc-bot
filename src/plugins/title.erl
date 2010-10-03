@@ -24,19 +24,19 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
         % explicit command to fetch a web page title
-        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title ", Url/binary>>]} ->
+        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!t ", Url/binary>>]} ->
+            fetch(Url, Ref, Channel),
+            {ok, State};
+         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title ", Url/binary>>]} ->
             fetch(Url, Ref, Channel),
             {ok, State};
         % fetch the title of the last url that appeared on the channel
+        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!t">>]} ->
+            NewState = fetch_last(State, Ref, Channel),
+            {ok, NewState};
         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, <<"!title">>]} ->
-            case dict:is_key(Channel, State) of
-                true ->
-                    Url = dict:fetch(Channel, State),
-                    fetch(Url, Ref, Channel),
-                    {ok, dict:erase(Channel, State)};
-                false ->
-                    {ok, State}
-            end;
+            NewState = fetch_last(State, Ref, Channel),
+            {ok, NewState};
         % look if there's an url in the text message on the channel, and
         % remmember it
         {in, _Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel, Text]} ->
@@ -55,6 +55,15 @@ handle_info(_Info, State) -> {ok, State}.
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_Args, _State) -> ok.
 
+fetch_last(State, Ref, Channel) ->
+    case dict:is_key(Channel, State) of
+        true ->
+            Url = dict:fetch(Channel, State),
+            fetch(Url, Ref, Channel),
+            dict:erase(Channel, State);
+        false ->
+            State
+    end.
 
 
 %% Fetch the url and find it's <title/>, but not more than 10kbytes and nothing
