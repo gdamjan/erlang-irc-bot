@@ -105,6 +105,8 @@ receive_chunk(RequestId, Callback, Body, Len) ->
             ContentType = proplists:get_value("content-type", Headers, ""),
             true = lists:prefix("text/", ContentType),
             receive_chunk(RequestId, Callback, Body, 0)
+    after 10000 ->
+        ok
     end.
 
 
