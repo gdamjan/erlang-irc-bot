@@ -1,4 +1,4 @@
--module(ircbot_server).
+-module(ircbot_fsm).
 -author("gdamjan@gmail.com").
 
 -behaviour(gen_fsm).

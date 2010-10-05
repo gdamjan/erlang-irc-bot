@@ -43,7 +43,7 @@ or simply:
 Once in the Erlang REPL you can start the bot with:
 
     {ok, Settings} = file:consult("settings.cfg").
-    {ok, IrcBot} = ircbot_server:start(Settings).
+    {ok, IrcBot} = ircbot_fsm:start(Settings).
     gen_fsm:sync_send_event(IrcBot, connect).
     gen_fsm:sync_send_all_state_event(IrcBot, {add_plugin, 'plugins.rps', []}).
 
@@ -54,9 +54,9 @@ Just hit "make" in another terminal and then, if everything is ok, in the Erlang
 
 or
 
-    l(ircbot_server).
+    l(ircbot_fsm).
 
-Erlangs [code switching][code switching] and the gen_server/gen_event frameworks
+Erlangs [code switching][code switching] and the gen_fsm/gen_event frameworks
 will handle all the details to run the new code without even disconnecting.
 
 [code switching]: http://en.wikipedia.org/wiki/Erlang_%28programming_language%29#Hot_code_loading_and_modules
@@ -68,7 +68,7 @@ Using the parametrized module support in Erlang we can do something like this
 too:
 
     {ok, Settings} = file:consult("settings.cfg").
-    IrcBot = ircbot_server:new(Settings).
+    IrcBot = ircbot_fsm:new(Settings).
     IrcBot:connect().
     IrcBot:add_plugin(plugins.rps, []).
 
