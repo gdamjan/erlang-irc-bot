@@ -25,6 +25,9 @@ handle_event(Msg, Channels) ->
         {in, _Ref, [_Server, _, <<"PART">>, Channel]} ->
         %% keep track of channels
             {ok, sets:del_element(Channel, Channels)};
+        {in, _Ref, [_Server, _, <<"KICK">>, Channel|_]} ->
+        %% keep track of channels
+            {ok, sets:del_element(Channel, Channels)};
         _ ->
             {ok, Channels}
     end.
