@@ -130,23 +130,23 @@ disconnecting(_, _, S) ->
 
 
 %% handle the EXIT of the connection process
-handle_info({'EXIT', Pid, normal}, offline, {Slaves=#slaves{conn=Pid}, Config}) ->
+handle_info({'EXIT', Pid, Reason}, offline, {Slaves=#slaves{conn=Pid}, Config}) ->
     {next_state, offline, {Slaves, Config}};
 
-handle_info({'EXIT', Pid, normal}, disconnecting, [From, {Slaves=#slaves{conn=Pid}, Config}]) ->
+handle_info({'EXIT', Pid, Reason}, disconnecting, [From, {Slaves=#slaves{conn=Pid}, Config}]) ->
     io:format("Exit in disconnecting: ~p~n", [Pid]),
     gen_fsm:reply(From, ok),
     {next_state, offline, {Slaves, Config}};
 
-handle_info({'EXIT', Pid, normal}, online, {Slaves=#slaves{conn=Pid}, Config}) ->
+handle_info({'EXIT', Pid, Reason}, online, {Slaves=#slaves{conn=Pid}, Config}) ->
     io:format("Exit in online: ~p~n", [Pid]),
     Self = ircbot_api:new(self()),
     ircbot_plugins:notify(Slaves#slaves.plugins, {Self, offline}),
     NewPid = start_connection(Config#config.server),
     {next_state, connecting, {Slaves#slaves{conn=NewPid}, Config}};
 
-handle_info({'EXIT', Pid, normal}, Name, {Slaves=#slaves{conn=Pid}, Config}) ->
-    io:format("Exit in ~p: ~p~n", [Name, Pid]),
+handle_info({'EXIT', Pid, Reason}, StateName, {Slaves=#slaves{conn=Pid}, Config}) ->
+    io:format("Exit in ~p: ~p~n", [StateName, Pid]),
     NewPid = start_connection(Config#config.server),
     {next_state, connecting, {Slaves#slaves{conn=NewPid}, Config}};
 
