@@ -4,34 +4,36 @@
 -behaviour(gen_event).
 -export([init/1, handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
 
--include("ircbot.hrl").
 -include("couchbeam.hrl").
 
 %% This plugin requires couchbeam (http://benoitc.github.com/couchbeam/)
 -import(couchbeam).
--import(couchbeam_db).
--import(couchbeam_server).
--import(proplists).
--import(lists).
+-import(application).
 
 %% Configuration (settings.cfg):
 %% {plugins, [
 %%     ...
-%%    {'plugins.couch_log', [{username,"xxx"}, {password,"yyy"}, {db,"zzz"}]}
+%%    {'plugins.couch_log', [Host, Port, Prefix, DbName, Options]}
 %% ]}.
 %%
-%% You can also put any parameters that couchdb_params expects
+%% You can also specify DbName only, or DbName and Options
+%%
+%% Options is the list provided to couchbeam:server_connection, the most
+%% important of which are the authentication options:
+%% http://benoitc.github.com/couchbeam/couchbeam.html#server_connection-4
 
+init([DbName]) ->
+    init([DbName, []]);
 
-% see ircbot.hrl about this macro, requires modules proplists and lists
-?make_proplist_to_record(couchdb_params).
+init([DbName, Options]) ->
+    init(["127.0.0.1", 5984, "", DbName, Options]);
 
-init(Args) ->
-    DbName = proplists:get_value(db, Args),
-    Params = proplist_to_record(couchdb_params, Args),
-    couchbeam:start(),
-    Connection = couchbeam_server:start_connection_link(Params),
-    Db = couchbeam_server:open_db(Connection, DbName),
+init([Host, Port, Prefix, DbName, Options]) ->
+    application:start(sasl),
+    application:start(ibrowse),
+    application:start(couchbeam),
+    Server = couchbeam:server_connection(Host, Port, Prefix, Options),
+    {ok, Db} = couchbeam:open_db(Server, DbName),
     {ok, Db}.
 
 
@@ -40,12 +42,13 @@ init(Args) ->
 log(Db, Sender, Channel, Message) ->
     {MegaSecs, Secs, MicroSecs} = now(),
     Timestamp = MegaSecs * 1000000 + Secs + MicroSecs/1000000,
-    couchbeam_db:save_doc(Db,  {[
+    Doc =  {[
          {<<"sender">>, Sender},
          {<<"channel">>, Channel},
          {<<"message">>, Message},
          {<<"timestamp">>,  Timestamp}
-    ]}).
+    ]},
+    couchbeam:save_doc(Db, Doc).
 
 handle_event(Msg, Db) ->
     case Msg of
