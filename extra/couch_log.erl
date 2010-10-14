@@ -48,7 +48,7 @@ log(Db, Sender, Channel, Message) ->
          {<<"message">>, Message},
          {<<"timestamp">>,  Timestamp}
     ]},
-    couchbeam:save_doc(Db, Doc).
+    catch couchbeam:save_doc(Db, Doc).
 
 handle_event(Msg, Db) ->
     case Msg of
