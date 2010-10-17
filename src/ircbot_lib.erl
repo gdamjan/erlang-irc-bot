@@ -17,7 +17,7 @@ url_match(Line, Suffix) ->
     Re = "(((http|https)://)|(www\\.))?"
          "(([a-zA-Z0-9\\._-]+\\.[a-zA-Z]{2,6})|"
          "([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}))"
-         "(/[a-zA-Z0-9\\&amp;%_\\./-~-]*)?" ++ Suffix,
+         "(/[a-zA-Z0-9\\&amp;%_\\./-~-]*)?" ++ "(" ++ Suffix ++ ")",
     re:run(Line, Re, [caseless, {capture, [0], binary}]).
 
 url_match(Line) ->
