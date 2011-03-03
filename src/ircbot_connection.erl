@@ -4,38 +4,30 @@
 -include("ircbot.hrl").
 -define(CRNL, "\r\n").
 
--export([start_link/3, code_switch/1, connect/3]).
+-export([start_link/3, code_change/1, connect/3]).
 
 
 start_link(Parent, Host, Port)  ->
     spawn_link(?MODULE, connect, [Parent, Host, Port]).
 
 connect(Parent, Host, Port) ->
-    connect(Parent, Host, Port, 0).
-
-connect(Parent, Host, Port, Backoff) when Backoff > 5 ->
-    connect(Parent, Host, Port, 5);
-
-connect(Parent, Host, Port, Backoff) ->
     Options = [ binary, {active, true}, {packet, line}, {keepalive, true},
                 {send_timeout, ?SEND_TIMEOUT}],
-    case gen_tcp:connect(Host, Port, Options, ?CONNECT_TIMEOUT) of
+    case gen_tcp:connect(Host, Port, Options) of
         {ok, Sock} ->
-            Parent:send_event({connected, self()}),
+            gen_fsm:send_event(Parent, success),
             loop({Parent, Sock});
         {error, Reason} ->
-            error_logger:format("Error connecting: ~s~n", [inet:format_error(Reason)]),
-            timer:sleep(Backoff * Backoff * 5000),
-            connect(Parent, Host, Port, Backoff + 1);
+            error_logger:format("gen_tcp:connect error: ~s~n", [inet:format_error(Reason)]);
         Other ->
-            error_logger:format("Error connecting: ~p~n", [Other])
+            error_logger:format("gen_tcp:connect other error: ~p~n", [Other])
     end.
 
 
 loop({Parent, Sock} = State) ->
     receive
-        code_switch ->
-            ?MODULE:code_switch(State);
+        code_change ->
+            ?MODULE:code_change(State);
 
         % data to send away on the socket
         {send, Data} ->
@@ -47,7 +39,7 @@ loop({Parent, Sock} = State) ->
         {tcp, Sock, Data} ->
             [Line|_Tail] = re:split(Data, ?CRNL), % strip the CRNL at the end
             debug(in, [Line]),    % for debuging only
-            Parent:send_event({received, Line}),
+            gen_fsm:send_event(Parent, {received, Line}),
             loop(State);
 
         % socket closed
@@ -67,7 +59,7 @@ loop({Parent, Sock} = State) ->
         gen_tcp:close(Sock)
     end.
 
-code_switch(State) -> loop(State).
+code_change(State) -> loop(State).
 
 %% debug helpers
 debug(in, Msg) ->

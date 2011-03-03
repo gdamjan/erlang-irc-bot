@@ -2,19 +2,27 @@
 -author("gdamjan@gmail.com").
 
 -behaviour(gen_fsm).
--include("ircbot.hrl").
-
--record(config, {nickname, server}).
--record(slaves, {conn, plugins}).
-
-%%% gen_fsm callbacks
--export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
-        terminate/3, code_change/4]).
--export([offline/2, offline/3, connecting/2, registering/2,
-        online/2, online/3, disconnecting/2, disconnecting/3]).
 
 %%% public api
--export([new/1, start/1, start_link/1]).
+-export([new/1, start/1, new_link/1, start_link/1]).
+
+%% gen_fsm callbacks
+-export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
+          terminate/3, code_change/4]).
+%% states
+-export([standby/2, standby/3, ready/2, ready/3,
+        connecting/2, connecting/3, registering/2, registering/3]).
+
+-include("ircbot.hrl").
+-record(state, {
+        nickname,
+        server,
+        plugins,
+        connection,
+        backoff,
+        timer
+    }).
+
 
 % api to use in the shell
 new(Settings) ->
@@ -24,165 +32,216 @@ new(Settings) ->
 start(Settings) ->
     gen_fsm:start(?MODULE, Settings, []).
 
-%% api for use in supervisors
+%% api for use in supervisors etc
+new_link(Settings) ->
+    {ok, Ref} = start_link(Settings),
+    ircbot_api:new(Ref).
+
 start_link(Settings) ->
     gen_fsm:start_link(?MODULE, Settings, []).
 
-%% internal functions
-get_config(Settings) ->
+
+%%% gen_fsm init/1
+%%% `Settings` should be a proplist ussually created from a 
+%%% config file with file:consult
+init(Settings) ->
+    process_flag(trap_exit, true),
     Nick = proplists:get_value(nickname, Settings),
-    {Host, Port} = proplists:get_value(server, Settings),
-    #config{nickname=Nick, server={Host, Port}}.
+    Server = proplists:get_value(server, Settings),
+    {ok, Plugins} = ircbot_plugins:start_link(Settings),
+    StateData = #state{nickname=Nick,server=Server,plugins=Plugins,backoff=0},
+    {ok, standby, StateData}.
 
-start_connection({Host, Port}) ->
-    Self = ircbot_api:new(self()),
-    ircbot_connection:start_link(Self, Host, Port).
 
+%%% helpers
 send(Conn, Data) ->
     Conn ! {send, Data}.
 
-quit(Conn) ->
+send_quit(Conn) ->
     send(Conn, ["QUIT :", ?QUITMSG]),
     Conn ! quit.
 
-registerize(Conn, Nickname) ->
+send_login(Conn, Nickname) ->
     send(Conn, ["NICK ", Nickname]),
     send(Conn, ["USER ", Nickname, " 8 * :", ?REALNAME]).
 
+%%%
+%%% gen_fsm states
+%%%
+standby(connect, StateData) ->
+    {Host, Port} = StateData#state.server,
+    Pid = ircbot_connection:start_link(self(), Host, Port),
+    NewStateData = StateData#state{connection=Pid},
+    io:format("connect in standby -> connecting~n"),
+    {next_state, connecting, NewStateData, ?CONNECT_TIMEOUT};
 
-%% gen_fsm callbacks
-init(Settings) ->
-    process_flag(trap_exit, true),
-    {ok, Plugins} = ircbot_plugins:start_link(Settings),
-    Config = get_config(Settings),
-    Slaves = #slaves{plugins=Plugins},
-    {ok, offline, {Slaves, Config}}.
+standby({reconnect, How}, StateData) ->
+    case How of
+        fast ->
+            Delay = ?RECONNECT_DELAY,
+            Backoff = 0;
+        backoff ->
+            Backoff = if
+                StateData#state.backoff >= 5 -> 5;
+                true -> StateData#state.backoff + 1
+            end,
+            % some kind of quadratic backoff
+            Delay = Backoff * Backoff * ?BACKOFF_DELAY + ?RECONNECT_DELAY
+    end,
+    io:format("reconnect in ~p seconds~n", [Delay/1000]),
+    Ref = gen_fsm:send_event_after(Delay, connect),
+    {next_state, standby, StateData#state{backoff=Backoff,timer=Ref}};
 
-
-offline(connect, From, {Slaves, Config}) ->
-    Pid = start_connection(Config#config.server),
-    {next_state, connecting, [From, {Slaves#slaves{conn=Pid}, Config}]};
-
-offline(_, _, S) ->
-    {reply, ok, offline, S}.
-
-offline(_, S) ->
-    {next_state, offline, S}.
-
-
-connecting({connected, Pid}, [From, {Slaves, Config}]) ->
-    gen_fsm:reply(From, ok),
-    connecting({connected, Pid}, {Slaves, Config});
-
-connecting({connected, Pid}, {Slaves, Config}) ->
-    registerize(Pid, Config#config.nickname),
-    {next_state, registering, {Slaves#slaves{conn=Pid}, Config}, 30000};
-
-connecting(Event, S) ->
-    io:format("FIXME[connecting]: ~p~n", [Event]),
-    {next_state, offline, S}.
+standby(_Ev, StateData) ->
+    {next_state, standby, StateData}.
 
 
-registering({received, Line}, {Slaves, Config}) ->
-    {match, IrcMessage} = ircbot_lib:irc_parse(Line),
+connecting(timeout, StateData) ->
+    gen_fsm:send_event_after(0, {reconnect, fast}),
+    Pid = StateData#state.connection,
+    erlang:exit(Pid, kill),
+    io:format("timeout in connecting -> standby~n"),
+    {next_state, standby, StateData};
+
+connecting(exit, StateData) ->
+    gen_fsm:send_event_after(0, {reconnect, backoff}),
+    io:format("connection died in connecting -> standby~n"),
+    {next_state, standby, StateData};
+
+connecting(success, StateData) ->
+    Pid = StateData#state.connection,
+    Nick = StateData#state.nickname,
+    send_login(Pid, Nick),
+    io:format("success in connecting -> registering~n"),
+    {next_state, registering, StateData#state{backoff=0}, ?REGISTER_TIMEOUT};
+
+connecting(_Ev, StateData) ->
+    {next_state, connecting, StateData, ?CONNECT_TIMEOUT}.
+
+
+
+registering(timeout, StateData) ->
+    Pid = StateData#state.connection,
+    erlang:exit(Pid, kill),
+    gen_fsm:send_event_after(0, {reconnect, backoff}),
+    io:format("timeout: register -> standby~n"),
+    {next_state, standby, StateData};
+
+registering(exit, StateData) ->
+    gen_fsm:send_event_after(0, {reconnect, backoff}),
+    io:format("connection died: register -> standby~n"),
+    {next_state, standby, StateData};
+
+registering({received, Msg}, StateData) ->
+    {match, IrcMessage} = ircbot_lib:irc_parse(Msg),
     case IrcMessage of
         [_, _, <<"001">>, _, _] ->
             Self = ircbot_api:new(self()),
-            ircbot_plugins:notify(Slaves#slaves.plugins, {Self, online}),
-            ircbot_plugins:notify(Slaves#slaves.plugins, {in, Self, IrcMessage}),
-            {next_state, online, {Slaves, Config}};
+            Plugins = StateData#state.plugins,
+            ircbot_plugins:notify(Plugins, {Self, online}),
+            ircbot_plugins:notify(Plugins, {in, Self, IrcMessage}),
+            {next_state, ready, StateData};
         _ ->
-            {next_state, registering, {Slaves, Config}, 30000}
+            {next_state, registering, StateData, ?REGISTER_TIMEOUT}
     end;
 
-registering(Event, S) ->
-    io:format("FIXME[registering]: ~p~n", [Event]),
-    {next_state, offline, S}.
+registering(_Ev, StateData) ->
+    {next_state, registering, StateData, ?REGISTER_TIMEOUT}.
 
 
-online({send_data, Data}, {Slaves, Config}) ->
-    Conn = Slaves#slaves.conn,
-    send(Conn, Data),
-    {next_state, online, {Slaves, Config}};
 
-online({received, Line}, {Slaves, Config}) ->
-    {match, IrcMessage} = ircbot_lib:irc_parse(Line),
+ready({send, Msg}, StateData) ->
+    Pid = StateData#state.connection,
+    Pid ! {send, Msg},
+    {next_state, ready, StateData};
+
+ready({received, Msg}, StateData) ->
+    {match, IrcMessage} = ircbot_lib:irc_parse(Msg),
     Self = ircbot_api:new(self()),
-    ircbot_plugins:notify(Slaves#slaves.plugins, {in, Self, IrcMessage}), % notify all plugins
-    {next_state, online, {Slaves, Config}}.
+    Plugins = StateData#state.plugins,
+    ircbot_plugins:notify(Plugins, {in, Self, IrcMessage}), % notify all plugins
+    {next_state, ready, StateData};
 
-online(disconnect, From, {Slaves, Config}) ->
-    Self = ircbot_api:new(self()),
-    ircbot_plugins:notify(Slaves#slaves.plugins, {Self, offline}),
-    Conn = Slaves#slaves.conn,
-    quit(Conn),
-    {next_state, disconnecting, [From, {Slaves, Config}], 50000}.
+ready(exit, StateData) ->
+    gen_fsm:send_event_after(0, {reconnect, fast}),
+    io:format("connection died: ready -> standby~n"),
+    {next_state, standby, StateData};
 
-disconnecting(timeout, [From, {Slaves, Config}]) ->
-    gen_fsm:reply(From, timeout),
-    {next_state, offline, {Slaves, Config}};
-
-disconnecting(_, S) ->
-    {next_state, disconnecting, S}.
-
-disconnecting(_, _, S) ->
-    {reply, ok, disconnecting, S}.
+ready(_Ev, StateData) ->
+    {next_state, ready, StateData}.
 
 
-%% handle the EXIT of the connection process
-handle_info({'EXIT', Pid, Reason}, offline, {Slaves=#slaves{conn=Pid}, Config}) ->
-    {next_state, offline, {Slaves, Config}};
+%% sync events to states - I don't use or need them
+standby(_Ev, _From, StateData) ->
+    {reply, ok, standby, StateData}.
 
-handle_info({'EXIT', Pid, Reason}, disconnecting, [From, {Slaves=#slaves{conn=Pid}, Config}]) ->
-    io:format("Exit in disconnecting: ~p~n", [Pid]),
-    gen_fsm:reply(From, ok),
-    {next_state, offline, {Slaves, Config}};
+connecting(_Ev, _From, StateData) ->
+    {reply, ok, connecting, StateData, ?CONNECT_TIMEOUT}.
 
-handle_info({'EXIT', Pid, Reason}, online, {Slaves=#slaves{conn=Pid}, Config}) ->
-    io:format("Exit in online: ~p~n", [Pid]),
-    Self = ircbot_api:new(self()),
-    ircbot_plugins:notify(Slaves#slaves.plugins, {Self, offline}),
-    NewPid = start_connection(Config#config.server),
-    {next_state, connecting, {Slaves#slaves{conn=NewPid}, Config}};
+registering(_Ev, _From, StateData) ->
+    {reply, ok, registering, StateData, ?REGISTER_TIMEOUT}.
 
-handle_info({'EXIT', Pid, Reason}, StateName, {Slaves=#slaves{conn=Pid}, Config}) ->
-    io:format("Exit in ~p: ~p~n", [StateName, Pid]),
-    NewPid = start_connection(Config#config.server),
-    {next_state, connecting, {Slaves#slaves{conn=NewPid}, Config}};
+ready(_Ev, _From, StateData) ->
+    {reply, ok, ready, StateData}.
 
 
-%% handle unknown messages
-handle_info(Msg, StateName, StateData) ->
-    io:format("UNK: ~p | ~p | ~w~n", [StateName, StateData, Msg]),
+%% handle the death of the connection process
+handle_info({'EXIT', Pid, _Reason}, StateName, #state{connection=Pid}=StateData) ->
+    % log Pid and Reason?
+    io:format("Pid: ~p EXITed in state: ~p~n", [Pid, StateName]),
+    gen_fsm:send_event_after(0, exit),
+    {next_state, StateName, StateData#state{connection=undefined}};
+
+handle_info(Info, StateName, StateData) ->
+    %%% if StateName is connecting or registering should return a timeout
+    io:format("BAD: ~p ~p~n", [Info, StateName]),
     {next_state, StateName, StateData}.
 
-handle_event(_Event, StateName, StateData) ->
-    {next_state, StateName, StateData}.
+handle_event(_Ev, _StateName, _StateData) ->
+    {stop, "Should never happen! Please don't use gen_fsm:send_all_state_event"}.
+
+
+handle_sync_event(disconnect, _From, StateName, StateData) ->
+    io:format("disconnect: ~p -> standby~n", [StateName]),
+    Ref = StateData#state.timer,
+    if
+       is_reference(Ref) -> gen_fsm:cancel_timer(Ref);
+       true -> ok
+    end,
+    Pid = StateData#state.connection,
+    if
+       is_pid(Pid) -> send_quit(Pid);
+       true -> ok
+    end,
+    {reply, ok, standby, StateData#state{backoff=0,timer=undefined}};
 
 %% Plugin managemenet
 handle_sync_event({add_plugin, Plugin, Args}, _From, StateName, StateData) ->
-    {Slaves, _Config} = StateData,
-    ircbot_plugins:add_handler(Slaves#slaves.plugins, Plugin, Args),
+    Plugins = StateData#state.plugins,
+    ircbot_plugins:add_handler(Plugins, Plugin, Args),
     {reply, ok, StateName, StateData};
 
 handle_sync_event({delete_plugin, Plugin, Args}, _From, StateName, StateData) ->
-    {Slaves, _Config} = StateData,
-    ircbot_plugins:delete_handler(Slaves#slaves.plugins, Plugin, Args),
+    Plugins = StateData#state.plugins,
+    ircbot_plugins:delete_handler(Plugins, Plugin, Args),
     {reply, ok, StateName, StateData};
 
 handle_sync_event(which_plugins, _From, StateName, StateData) ->
-    {Slaves, _Config} = StateData,
-    Reply = ircbot_plugins:which_handlers(Slaves#slaves.plugins),
-    {reply, Reply, StateName, StateData}.
+    Plugins = StateData#state.plugins,
+    Reply = ircbot_plugins:which_handlers(Plugins),
+    {reply, Reply, StateName, StateData};
+
+handle_sync_event(_Ev, _From, _StateName, _StateData) ->
+    {stop, "Should never happen! Please don't use gen_fsm:sync_send_all_state_event"}.
 
 
-%% OTP handlers
-code_change(_OldVsn, offline, {Slaves, Config}, _Extra) ->
-    {ok, offline, {Slaves, Config}};
-
-code_change(_OldVsn, StateName, {Slaves, Config}, _Extra) ->
-    Slaves#slaves.conn ! code_switch,
-    {ok, StateName, {Slaves, Config}}.
-
+%% OTP code_change and terminate
+code_change(_OldVsn, StateName, StateData, _Extra) ->
+    Pid = StateData#state.connection,
+    if
+       is_pid(Pid) -> Pid ! code_change;
+       true -> ok
+    end,
+    {ok, StateName, StateData}.
 
 terminate(_Reason, _StateName, _StateData) -> ok.
