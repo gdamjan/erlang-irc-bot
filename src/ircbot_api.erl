@@ -1,5 +1,4 @@
-%% this is an Erlang parameterized module
-%% it kind of mimics Object Oriented syntax
+%% Yes I use an Erlang parameterized module - so kill me
 
 -module(ircbot_api, [IrcbotRef]).
 -author("gdamjan@gmail.com").
