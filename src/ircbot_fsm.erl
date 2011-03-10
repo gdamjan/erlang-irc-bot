@@ -10,8 +10,7 @@
 -export([init/1, handle_event/3, handle_sync_event/4, handle_info/3,
           terminate/3, code_change/4]).
 %% states
--export([standby/2, standby/3, ready/2, ready/3,
-        connecting/2, connecting/3, registering/2, registering/3]).
+-export([standby/2, ready/2, connecting/2, registering/2]).
 
 -include("ircbot.hrl").
 -record(state, {
@@ -42,7 +41,7 @@ start_link(Settings) ->
 
 
 %%% gen_fsm init/1
-%%% `Settings` should be a proplist ussually created from a 
+%%% `Settings` should be a proplist ussually created from a
 %%% config file with file:consult
 init(Settings) ->
     process_flag(trap_exit, true),
@@ -169,20 +168,6 @@ ready(exit, StateData) ->
 
 ready(_Ev, StateData) ->
     {next_state, ready, StateData}.
-
-
-%% sync events to states - I don't use or need them
-standby(_Ev, _From, StateData) ->
-    {reply, ok, standby, StateData}.
-
-connecting(_Ev, _From, StateData) ->
-    {reply, ok, connecting, StateData, ?CONNECT_TIMEOUT}.
-
-registering(_Ev, _From, StateData) ->
-    {reply, ok, registering, StateData, ?REGISTER_TIMEOUT}.
-
-ready(_Ev, _From, StateData) ->
-    {reply, ok, ready, StateData}.
 
 
 %% handle the death of the connection process
