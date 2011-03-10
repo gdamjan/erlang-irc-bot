@@ -1,16 +1,7 @@
 -module(ircbot_lib).
 -author("gdamjan@gmail.com").
 
--export([debug/1, irc_parse/1, url_match/1, url_match/2, escape_uri/1, url_encode/1]).
-
-debug(Msg) ->
-    case catch io:format("~ts~n", [Msg]) of
-        {'EXIT', _} ->
-            catch io:format("~s~n", [Msg]),
-            ok;
-        ok ->
-            ok
-    end.
+-export([irc_parse/1, url_match/1, url_match/2, escape_uri/1, url_encode/1]).
 
 %% Based on http://regexlib.com/RETester.aspx?regexp_id=1057
 url_match(Line, Suffix) ->

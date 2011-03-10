@@ -31,14 +31,14 @@ loop({Parent, Sock} = State) ->
 
         % data to send away on the socket
         {send, Data} ->
-            debug(out, [Data]), % for debuging only
+            debug(out, Data), % for debuging only
             ok = gen_tcp:send(Sock, [Data, ?CRNL]),
             loop(State);
 
         % data received
         {tcp, Sock, Data} ->
             [Line|_Tail] = re:split(Data, ?CRNL), % strip the CRNL at the end
-            debug(in, [Line]),    % for debuging only
+            debug(in, Line),    % for debuging only
             gen_fsm:send_event(Parent, {received, Line}),
             loop(State);
 
@@ -63,7 +63,19 @@ code_change(State) -> loop(State).
 
 %% debug helpers
 debug(in, Msg) ->
-    ircbot_lib:debug([" IN| ", Msg]);
+    io:put_chars(" IN| "),
+    debug(Msg),
+    io:put_chars("\n");
 
 debug(out, Msg) ->
-    ircbot_lib:debug(["OUT| ", Msg]).
+    io:put_chars("OUT| "),
+    debug(Msg),
+    io:put_chars("\n").
+
+debug(Msg) ->
+    case catch io:put_chars(Msg) of
+        {'EXIT',{badarg, _}} ->
+            io:write(iolist_to_binary(Msg));
+        ok ->
+            ok
+    end.
