@@ -44,7 +44,7 @@ Once in the Erlang REPL you can start the bot with:
 
     {ok, Settings} = file:consult("settings.cfg").
     {ok, IrcBot} = ircbot_fsm:start(Settings).
-    gen_fsm:sync_send_event(IrcBot, connect).
+    gen_fsm:send_event(IrcBot, connect).
     gen_fsm:sync_send_all_state_event(IrcBot, {add_plugin, 'plugins.rps', []}).
 
 You can make changes to the source code & plugins while the bot is running.
