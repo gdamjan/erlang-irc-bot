@@ -89,3 +89,4 @@ ________________
 * http://github.com/pizza/abbot
 * http://code.google.com/p/madcow/
 * http://www.otfbot.org/
+* https://github.com/mazenharake/eirc/
