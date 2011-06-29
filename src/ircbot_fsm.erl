@@ -89,7 +89,8 @@ standby({reconnect, How}, StateData) ->
     end,
     io:format("reconnect in ~p seconds~n", [Delay/1000]),
     Ref = gen_fsm:send_event_after(Delay, connect),
-    {next_state, standby, StateData#state{backoff=Backoff,timer=Ref}};
+    NewStateData = StateData#state{backoff=Backoff,timer=Ref},
+    {next_state, standby, NewStateData};
 
 standby(_Ev, StateData) ->
     {next_state, standby, StateData}.
@@ -111,8 +112,9 @@ connecting(success, StateData) ->
     Pid = StateData#state.connection,
     Nick = StateData#state.nickname,
     send_login(Pid, Nick),
+    NewStateData = StateData#state{backoff=0},
     io:format("success in connecting -> registering~n"),
-    {next_state, registering, StateData#state{backoff=0}, ?REGISTER_TIMEOUT};
+    {next_state, registering, NewStateData, ?REGISTER_TIMEOUT};
 
 connecting(_Ev, StateData) ->
     {next_state, connecting, StateData, ?CONNECT_TIMEOUT}.
@@ -175,7 +177,8 @@ handle_info({'EXIT', Pid, _Reason}, StateName, #state{connection=Pid}=StateData)
     % log Pid and Reason?
     io:format("Pid: ~p EXITed in state: ~p~n", [Pid, StateName]),
     gen_fsm:send_event_after(0, exit),
-    {next_state, StateName, StateData#state{connection=undefined}};
+    NewStateData = StateData#state{connection=undefined},
+    {next_state, StateName, NewStateData};
 
 handle_info(Info, StateName, StateData) ->
     %%% if StateName is connecting or registering should return a timeout
@@ -198,7 +201,8 @@ handle_sync_event(disconnect, _From, StateName, StateData) ->
        is_pid(Pid) -> send_quit(Pid);
        true -> ok
     end,
-    {reply, ok, standby, StateData#state{backoff=0,timer=undefined}};
+    NewStateData = StateData#state{backoff=0,timer=undefined},
+    {reply, ok, standby, NewStateData};
 
 %% Plugin managemenet
 handle_sync_event({add_plugin, Plugin, Args}, _From, StateName, StateData) ->
