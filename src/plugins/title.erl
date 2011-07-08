@@ -13,7 +13,7 @@
 -import(http).
 -import(inets).
 -import(ssl).
-
+-import(string).
 
 
 init(_Args) ->
@@ -114,9 +114,10 @@ sanitize_url(Url) when is_binary(Url) ->
     sanitize_url(erlang:binary_to_list(Url));
 
 sanitize_url(Url) when is_list(Url) ->
-    case {lists:prefix("http://", Url),lists:prefix("https://", Url)} of
+    Url1 = string:strip(Url),
+    case {lists:prefix("http://", Url1),lists:prefix("https://", Url1)} of
         {false, false} ->
-            lists:append("http://", Url);
+            lists:append("http://", Url1);
         _ ->
-            Url
+            Url1
     end.
