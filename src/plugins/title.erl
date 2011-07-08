@@ -13,8 +13,7 @@
 -import(http).
 -import(inets).
 -import(ssl).
-
-
+-import(string).
 
 init(_Args) ->
     inets:start(),
@@ -75,9 +74,11 @@ fetch(Url, Ref, Channel) ->
     spawn(fun() -> fetcher(Url, F) end).
 
 fetcher(Url, Callback) ->
-    Url1 = sanitize_url(Url),
+    Url1 = check_space(Url),
+    Url2 = sanitize_url(Url1),
+    
     Headers = [{"User-Agent", "Mozilla/5.0 (erlang-irc-bot)"}],
-    {ok, RequestId} = http:request(get, {Url1, Headers}, [], [{sync, false}, {stream, self}]),
+    {ok, RequestId} = http:request(get, {Url2, Headers}, [], [{sync, false}, {stream, self}]),
     receive_chunk(RequestId, Callback, [], 10000).
 
 %% callback function called as chunks from http are received
@@ -110,13 +111,23 @@ receive_chunk(RequestId, Callback, Body, Len) ->
     end.
 
 
-sanitize_url(Url) when is_binary(Url) ->
-    sanitize_url(erlang:binary_to_list(Url));
+check_space(Url) when is_binary(Url) ->
+    check_space(erlang:binary_to_list(Url));
 
-sanitize_url(Url) when is_list(Url) ->
-    case {lists:prefix("http://", Url),lists:prefix("https://", Url)} of
-        {false, false} ->
+check_space(Url) when is_list(Url) ->
+    case lists:prefix(" ", Url) of
+        true -> 
+           string:strip(Url, both, $ );
+                _ ->   Url                  
+    end.
+
+
+sanitize_url(Url) ->
+case {lists:prefix("http://", Url),lists:prefix("https://", Url)} of
+        {false, false} -> 
+         
             lists:append("http://", Url);
         _ ->
             Url
     end.
+
