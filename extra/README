@@ -16,7 +16,7 @@ To compile first clone and compile CouchBeam_::
  cd ../..
  erlc -o ebin/plugins -I deps/couchbeam/include extra/couch_log.erl
 
-then to use the plugin, you'll have to add the "ebin/" directories to the path
+then to use the plugin, you'll have to add *all* the "ebin/" directories to the path
 of your erlang process too::
 
   erl -pa ebin -pa deps/couchbeam/ebin -pa deps/couchbeam/deps/*/ebin
