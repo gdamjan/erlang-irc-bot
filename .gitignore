@@ -2,3 +2,4 @@ settings.cfg
 *.beam
 ebin/
 deps/
+.dialyzer_plt
