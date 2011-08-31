@@ -13,3 +13,5 @@
 -define(RECONNECT_DELAY,  15 * ?SECOND).  % fast reconnect
 -define(BACKOFF_DELAY,    15 * ?SECOND).  % backoff reconnect 15s base,
                                    % delay of 0, 5, 20, 45, 80, 125
+
+-define(NICK_SUFFIX, "_").         % append suffix to nickname if nick is in use

@@ -142,6 +142,10 @@ registering({received, Msg}, StateData) ->
             ircbot_plugins:notify(Plugins, {Self, online}),
             ircbot_plugins:notify(Plugins, {in, Self, IrcMessage}),
             {next_state, ready, StateData};
+        [_, _, <<"433">>, <<"*">>, <<Nick/binary>>, _] ->
+            ChangeNick = [<<"NICK ">>, Nick, ?NICK_SUFFIX],
+            send(StateData#state.connection, ChangeNick),
+            {next_state, registering, StateData, ?REGISTER_TIMEOUT};
         _ ->
             {next_state, registering, StateData, ?REGISTER_TIMEOUT}
     end;
@@ -152,8 +156,7 @@ registering(_Ev, StateData) ->
 
 
 ready({send, Msg}, StateData) ->
-    Pid = StateData#state.connection,
-    Pid ! {send, Msg},
+    send(StateData#state.connection, Msg),
     {next_state, ready, StateData};
 
 ready({received, Msg}, StateData) ->
