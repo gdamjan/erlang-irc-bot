@@ -18,9 +18,7 @@ connect(Parent, Host, Port) ->
             gen_fsm:send_event(Parent, success),
             loop({Parent, Sock});
         {error, Reason} ->
-            error_logger:format("gen_tcp:connect error: ~s~n", [inet:format_error(Reason)]);
-        Other ->
-            error_logger:format("gen_tcp:connect other error: ~p~n", [Other])
+            error_logger:format("gen_tcp:connect error: ~s~n", [inet:format_error(Reason)])
     end.
 
 
