@@ -30,6 +30,7 @@ init([DbName, Options]) ->
 
 init([Host, Port, Prefix, DbName, Options]) ->
     application:start(sasl),
+    application:start(crypto),
     application:start(ibrowse),
     application:start(couchbeam),
     Server = couchbeam:server_connection(Host, Port, Prefix, Options),
