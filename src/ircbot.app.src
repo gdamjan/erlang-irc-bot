@@ -3,8 +3,9 @@
     {vsn, "0.01"},
     {modules, [
         ircbot_app, ircbot_fsm, ircbot_api,
-        ircbot_lib, pong_plugin, ctcp_plugin
+        ircbot_lib, ircbot_plugins,
+        pong_plugin, ctcp_plugin
     ]},
     {mod, {ircbot_app, []}},
-    {applications, [kernel, stdlib]}]
+    {applications, [kernel, stdlib, sasl]}]
 }.

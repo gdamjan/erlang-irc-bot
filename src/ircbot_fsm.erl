@@ -23,7 +23,7 @@
     }).
 
 
-% api to use in the shell
+%% api to use in the shell
 new(Settings) ->
     {ok, Ref} = start(Settings),
     ircbot_api:new(Ref).

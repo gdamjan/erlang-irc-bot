@@ -61,8 +61,9 @@ will handle all the details to run the new code without even disconnecting.
 
 [code switching]: http://en.wikipedia.org/wiki/Erlang_%28programming_language%29#Hot_code_loading_and_modules
 
-Experimental OOP API (*)
-------------------------
+
+Parametrized Module API
+-----------------------
 
 Using the parametrized module support in Erlang we can do something like this
 too:
@@ -72,10 +73,22 @@ too:
     IrcBot:connect().
     IrcBot:add_plugin(plugins.rps, []).
 
-I'm yet to decide if it's smart to do this, since this feature is considered
-experimental in Erlang. (*) The parametrized module feature is becoming
-officially supported in Erlang R14, so I'm deciding that it will be the official
-API of this bot.
+
+The parametrized module feature is officially supported since Erlang R14, so
+now I consider this the official API of the bot.
+
+
+Real OTP Application
+--------------------
+
+To start it:
+
+    erl -sname ircbot@localhost -setcookie xxx -pa ebin/ \
+        -s ircbot_app -conf settings-app.cfg
+
+To connect a remote shell to it:
+
+    erl -sname ctrl -remsh ircbot@localhost -setcookie xxx
 
 
 Similar projects
