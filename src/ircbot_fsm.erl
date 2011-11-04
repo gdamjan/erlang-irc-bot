@@ -23,21 +23,31 @@
     }).
 
 
-%% api to use in the shell
+%% PM api to use in the shell
 new(Settings) ->
     {ok, Ref} = start(Settings),
     ircbot_api:new(Ref).
 
-start(Settings) ->
-    gen_fsm:start(?MODULE, Settings, []).
-
-%% api for use in supervisors etc
 new_link(Settings) ->
     {ok, Ref} = start_link(Settings),
     ircbot_api:new(Ref).
 
+%% traditional OTP api
+start(Settings) ->
+    case proplists:get_value(name, Settings) of
+        undefined ->
+            gen_fsm:start(?MODULE, Settings, []);
+        FsmName ->
+            gen_fsm:start(FsmName, ?MODULE, Settings, [])
+    end.
+
 start_link(Settings) ->
-    gen_fsm:start_link(?MODULE, Settings, []).
+    case proplists:get_value(name, Settings) of
+        undefined ->
+            gen_fsm:start_link(?MODULE, Settings, []);
+        FsmName ->
+            gen_fsm:start_link(FsmName, ?MODULE, Settings, [])
+    end.
 
 
 %%% gen_fsm init/1
