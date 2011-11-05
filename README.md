@@ -84,7 +84,7 @@ Real OTP Application
 To start it:
 
     erl -sname ircbot@localhost -setcookie xxx -pa ebin/ \
-        -s ircbot_app -conf settings-app.cfg
+        -sasl errlog_type error -s ircbot_app -conf settings-app.cfg
 
 To connect a remote shell to it:
 
