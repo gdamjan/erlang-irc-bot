@@ -40,7 +40,7 @@ init([Host, Port, Prefix, DbName, Options]) ->
 
 %% Log only messages to channel to a CouchDB database
 %% Logs the sender, the channel, the message and the timestamp
-log(Db, Sender, Channel, Message) ->
+log_message(Db, Sender, Channel, Message) ->
     {MegaSecs, Secs, MicroSecs} = now(),
     Timestamp = MegaSecs * 1000000 + Secs + MicroSecs/1000000,
     Doc =  {[
@@ -51,10 +51,24 @@ log(Db, Sender, Channel, Message) ->
     ]},
     catch couchbeam:save_doc(Db, Doc).
 
+log_topic(Db, Sender, Channel, Topic) ->
+    {MegaSecs, Secs, MicroSecs} = now(),
+    Timestamp = MegaSecs * 1000000 + Secs + MicroSecs/1000000,
+    Doc =  {[
+         {<<"sender">>, Sender},
+         {<<"channel">>, Channel},
+         {<<"topic">>, Topic},
+         {<<"timestamp">>,  Timestamp}
+    ]},
+    catch couchbeam:save_doc(Db, Doc).
+
 handle_event(Msg, Db) ->
     case Msg of
         {in, _Ref, [Sender, _Name, <<"PRIVMSG">>, <<"#", Channel/binary>>, Text]} ->
-            log(Db, Sender, Channel, Text),
+            log_message(Db, Sender, Channel, Text),
+            {ok, Db};
+        {in, _Ref, [Sender, _Name, <<"TOPIC">>, <<"#", Channel/binary>>, Text]} ->
+            log_topic(Db, Sender, Channel, Text),
             {ok, Db};
         {out, _Ref, [<<"PRIVMSG">>, <<"#", Channel/binary>>, Text]} ->
             log(Db, "**", Channel, Text),
