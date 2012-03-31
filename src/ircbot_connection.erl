@@ -72,6 +72,9 @@ debug(out, Msg) ->
 debug(Msg) ->
     port_command(stdout, [ircbot_lib:to_binary(Msg), "\n"]).
 
+% open stdout as an Erlang port and register it with the
+% stdout atom. The port will be closed automatically if the
+% connection process dies.
 open_stdout() ->
     StdOut = open_port("/dev/stdout", [binary, out]),
     register(stdout, StdOut).
