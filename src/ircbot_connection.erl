@@ -13,6 +13,7 @@ start_link(Parent, Host, Port)  ->
 connect(Parent, Host, Port) ->
     Options = [ binary, {active, true}, {packet, line}, {keepalive, true},
                 {send_timeout, ?SEND_TIMEOUT}],
+    open_stdout(),
     case gen_tcp:connect(Host, Port, Options) of
         {ok, Sock} ->
             gen_fsm:send_event(Parent, success),
@@ -61,19 +62,16 @@ code_change(State) -> loop(State).
 
 %% debug helpers
 debug(in, Msg) ->
-    io:put_chars(" IN| "),
-    debug(Msg),
-    io:put_chars("\n");
+    debug([" IN| ", Msg]);
 
 debug(out, Msg) ->
-    io:put_chars("OUT| "),
-    debug(Msg),
-    io:put_chars("\n").
+    debug(["OUT| ", Msg]).
 
+% print directly to stdout thus avoid Erlangs broken
+% io:* routines
 debug(Msg) ->
-    case catch io:put_chars(Msg) of
-        {'EXIT',{badarg, _}} ->
-            io:write(iolist_to_binary(Msg));
-        ok ->
-            ok
-    end.
+    port_command(stdout, [ircbot_lib:to_binary(Msg), "\n"]).
+
+open_stdout() ->
+    StdOut = open_port("/dev/stdout", [binary, out]),
+    register(stdout, StdOut).

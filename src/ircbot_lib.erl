@@ -2,6 +2,7 @@
 -author("gdamjan@gmail.com").
 
 -export([irc_parse/1, url_match/1, url_match/2, escape_uri/1, url_encode/1]).
+-export([to_binary/1]).
 
 %% Based on http://regexlib.com/RETester.aspx?regexp_id=1057
 url_match(Line, Suffix) ->
@@ -84,3 +85,31 @@ parse_command(Line, Acc) ->
     Parts = if length(Trailing) == 0 -> 16; true -> 15 end,
     [Command | Params] = re:split(Front, " ", [{parts, Parts}]),
     {match, Acc ++ [Command] ++ Params ++ Trailing}.
+
+
+% Convert iolist to binary similar to unicode:characters_to_binary
+% The problem with characters_to_binary it will fail if you have a
+% iolist with binaries that are not UTF-8, this function just passes
+% those (all) binaries untouched in the resulting iolist.
+% So only strings are converted.
+to_binary(IoList) when is_binary(IoList) ->
+    IoList;
+
+to_binary(IoList) ->
+    to_binary(IoList, []).
+
+to_binary([], Acc) ->
+    Acc;
+
+to_binary([Head | Tail], Acc) when is_binary(Head) ->
+    to_binary(Tail, [Acc | Head]);
+
+to_binary(IoList, Acc) ->
+    case unicode:characters_to_binary(IoList) of
+        {error, Bin, Rest} ->
+            to_binary(Rest, [Acc|Bin]);
+        {incomplete, Bin1, Bin2} ->
+            [Acc | [Bin1, Bin2]];
+        Bin ->
+            Bin
+    end.
