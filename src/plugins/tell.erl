@@ -30,8 +30,8 @@ fancy_time({Mega,Sec,_Micro}) ->
 remember(Ref, Channel, Sender, Msg, State) ->
     Timestamp = erlang:now(),
     [Recepient | Message] = re:split(Msg, "[^a-zA-Z0-9^|_{}[\\]\\\\`-]", [{parts,2}]),
-    Ref:notice(Sender, ["ok, I'll  pass that to ", Recepient, " when he's around."]),
-    Key = string:to_lower(binary_to_list(Recepient)), 
+    Ref:notice(Sender, <<"ok, I'll  pass that on when ", Recepient/binary, " is around.">>),
+    Key = string:to_lower(binary_to_list(Recepient)),
     {ok, dict:append(Key, {Timestamp, Channel, Sender, Message}, State)}.
 
 reminder(Ref, Nick, State) ->
