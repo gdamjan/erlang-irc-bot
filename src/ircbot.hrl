@@ -1,6 +1,6 @@
--define(VERSION, "http://github.com/gdamjan/erlang-irc-bot").
--define(REALNAME, "An experimental Erlang IRC bot").
--define(QUITMSG, "I can feel it, my mind is going...").
+-define(VERSION,  <<"http://github.com/gdamjan/erlang-irc-bot">>).
+-define(REALNAME, <<"An experimental Erlang IRC bot">>).
+-define(QUITMSG,  <<"I can feel it, my mind is going...">>).
 
 -define(SECOND, 1000).
 -define(MINUTE, 60 * 1000).
@@ -12,6 +12,6 @@
 -define(REGISTER_TIMEOUT, 30 * ?SECOND).  % wait for register on irc
 -define(RECONNECT_DELAY,  15 * ?SECOND).  % fast reconnect
 -define(BACKOFF_DELAY,    15 * ?SECOND).  % backoff reconnect 15s base,
-                                   % delay of 0, 5, 20, 45, 80, 125
+                                          % delay of 0, 5, 20, 45, 80, 125
 
--define(NICK_SUFFIX, "_").         % append suffix to nickname if nick is in use
+-define(NICK_SUFFIX, <<"_">>).         % append suffix to nickname if nick is in use
