@@ -52,9 +52,14 @@ Just hit "make" in another terminal and then, if everything is ok, in the Erlang
 
     l('plugins.rps').
 
+to reload the 'plugins.rps' rock-paper-scissors module.
+
 or
 
     l(ircbot_fsm).
+
+to reload the 'ircbot_fsm' module.
+
 
 Erlangs [code switching][code switching] and the gen_fsm/gen_event frameworks
 will handle all the details to run the new code without even disconnecting.
