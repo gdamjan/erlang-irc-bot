@@ -10,7 +10,7 @@
 -import(lists).
 -import(proplists).
 -import(dict).
--import(http).
+-import(httpc).
 -import(inets).
 -import(ssl).
 -import(string).
@@ -77,14 +77,14 @@ fetch(Url, Ref, Channel) ->
 fetcher(Url, Callback) ->
     Url1 = sanitize_url(Url),
     Headers = [{"User-Agent", "Mozilla/5.0 (erlang-irc-bot)"}],
-    {ok, RequestId} = http:request(get, {Url1, Headers}, [], [{sync, false}, {stream, self}]),
+    {ok, RequestId} = httpc:request(get, {Url1, Headers}, [], [{sync, false}, {stream, self}]),
     receive_chunk(RequestId, Callback, [], 10000).
 
 %% callback function called as chunks from http are received
 %% when enough data is received (Len =< 0) process the info
 
 receive_chunk(_RequestId, Callback, Body, Len) when Len =< 0 ->
-    {match, [Title]} = re:run(Body, "<title.*>([\\s\\S]*)</title>", [caseless, {capture, [1], binary}]),
+    {match, [Title]} = re:run(Body, "<title.*?>([\\s\\S]*?)</title>", [caseless, {capture, [1], binary}]),
     NewTitle = re:replace(Title, "\\s+", " ", [global]),
     % MAYBE recode charset to UTF-8
     Callback(NewTitle);
