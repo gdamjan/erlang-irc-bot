@@ -70,7 +70,7 @@ debug(out, Msg) ->
 % print directly to stdout thus avoid Erlangs broken
 % io:* routines
 debug(Msg) ->
-    port_command(stdout, [ircbot_lib:to_binary(Msg), "\n"]).
+    port_command(stdout, [Msg, "\n"]).
 
 % open stdout as an Erlang port and register it with the
 % stdout atom. The port will be closed automatically if the
