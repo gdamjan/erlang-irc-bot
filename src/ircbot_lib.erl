@@ -2,6 +2,7 @@
 -author("gdamjan@gmail.com").
 
 -export([irc_parse/1, url_match/1, url_match/2, escape_uri/1]).
+-export([iolist_join/1, iolist_join/2]).
 
 %% Based on http://regexlib.com/RETester.aspx?regexp_id=1057
 url_match(Line, Suffix) ->
@@ -69,3 +70,20 @@ parse_command(Line, Acc) ->
     Parts = if length(Trailing) == 0 -> 16; true -> 15 end,
     [Command | Params] = re:split(Front, " ", [{parts, Parts}]),
     {match, Acc ++ [Command] ++ Params ++ Trailing}.
+
+
+%
+% Similar to string:join but doesn't require strings, and
+% returns an iolist
+%
+iolist_join([B], _, Acc) ->
+    lists:reverse([ B | Acc ]);
+
+iolist_join([B|T], Sep, Acc) ->
+    iolist_join(T, Sep, [ [B, Sep] | Acc ]).
+
+iolist_join(L, Sep) ->
+    iolist_join(L, Sep, []).
+
+iolist_join(L) ->
+    iolist_join(L, " ").
