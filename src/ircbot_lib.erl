@@ -2,7 +2,7 @@
 -author("gdamjan@gmail.com").
 
 -export([irc_parse/1, url_match/1, url_match/2, escape_uri/1]).
--export([iolist_join/1, iolist_join/2]).
+-export([iolist_join/1, iolist_join/2, sanitize_utf8/1]).
 
 %% Based on http://regexlib.com/RETester.aspx?regexp_id=1057
 url_match(Line, Suffix) ->
@@ -87,3 +87,22 @@ iolist_join(L, Sep) ->
 
 iolist_join(L) ->
     iolist_join(L, " ").
+
+%
+% make a best effort to get a proper utf8 binary out of a the input binary
+%
+sanitize_utf8(Bin) ->
+    case unicode:characters_to_list(Bin) of
+        {incomplete, Encoded, _Rest} ->
+            unicode:characters_to_binary(Encoded);
+        {error, Encoded, _Rest} ->
+            % should improve the heuristics when to decode as latin1
+            case Encoded of
+                <<>> ->
+                    unicode:characters_to_binary(unicode:characters_to_list(Bin, latin1));
+                _ ->
+                    unicode:characters_to_binary(Encoded)
+            end;
+        List ->
+            unicode:characters_to_binary(List)
+    end.
