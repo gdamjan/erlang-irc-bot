@@ -9,6 +9,7 @@
 %% This plugin requires couchbeam (http://benoitc.github.com/couchbeam/)
 -import(couchbeam).
 -import(application).
+-import(ircbot_lib).
 
 %% Configuration (settings.cfg):
 %% {plugins, [
@@ -46,7 +47,7 @@ log_message(Db, Sender, Channel, Message) ->
     Doc =  {[
          {<<"sender">>, Sender},
          {<<"channel">>, Channel},
-         {<<"message">>, Message},
+         {<<"message">>, ircbot_lib:sanitize_utf8(Message)},
          {<<"timestamp">>,  Timestamp}
     ]},
     catch couchbeam:save_doc(Db, Doc).
