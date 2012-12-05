@@ -19,7 +19,8 @@
         plugins,
         connection,
         backoff,
-        timer
+        timer,
+        ssl
     }).
 
 
@@ -55,10 +56,16 @@ start_link(Settings) ->
 %%% config file with file:consult
 init(Settings) ->
     process_flag(trap_exit, true),
+    case proplists:get_value(ssl, Settings) of
+        true ->
+            Ssl = true;
+        _ ->
+            Ssl = false
+    end,
     Nick = proplists:get_value(nickname, Settings),
     Server = proplists:get_value(server, Settings),
     {ok, Plugins} = ircbot_plugins:start_link(Settings),
-    StateData = #state{nickname=Nick,server=Server,plugins=Plugins,backoff=0},
+    StateData = #state{nickname=Nick,server=Server,plugins=Plugins,backoff=0,ssl=Ssl},
     {ok, standby, StateData}.
 
 
@@ -79,7 +86,8 @@ send_login(Conn, Nickname) ->
 %%%
 standby(connect, StateData) ->
     {Host, Port} = StateData#state.server,
-    Pid = ircbot_connection:start_link(self(), Host, Port),
+    Ssl = StateData#state.ssl,
+    Pid = ircbot_connection:start_link(self(), Host, Port, Ssl),
     NewStateData = StateData#state{connection=Pid},
     io:format("connect in standby -> connecting~n"),
     {next_state, connecting, NewStateData, ?CONNECT_TIMEOUT};
