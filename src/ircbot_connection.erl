@@ -4,22 +4,25 @@
 -include("ircbot.hrl").
 -define(CRNL, "\r\n").
 
--export([start_link/4, code_change/1, connect/4]).
+-export([start_link/4, code_change/1, connect/3, connect/4]).
 
 
 start_link(Parent, Host, Port, Ssl)  ->
     spawn_link(?MODULE, connect, [Parent, Host, Port, Ssl]).
+
+connect(Parent, Host, Port) ->
+    connect(Parent, Host, Port, false);
 
 connect(Parent, Host, Port, Ssl) ->
     Options = [ binary, {active, true}, {packet, line}, {keepalive, true},
                 {send_timeout, ?SEND_TIMEOUT}],
     open_stdout(),
     case Ssl of
-	true ->
-	    ssl:start(),
-	    SocketType = ssl;
-	false ->
-	    SocketType = gen_tcp
+        true ->
+            ssl:start(),
+            SocketType = ssl;
+        false ->
+            SocketType = gen_tcp
     end,
     case SocketType:connect(Host, Port, Options) of
         {ok, Sock} ->
@@ -35,40 +38,40 @@ loop({_, Sock, SocketType} = State) ->
         code_change ->
             ?MODULE:code_change(State);
 
-	% data to send away on the socket
+        % data to send away on the socket
         {send, Data} ->
             debug(out, Data), % for debuging only
             ok = SocketType:send(Sock, [Data, ?CRNL]),
             loop(State);
 
-	% data received
+        % data received
         {tcp, Sock, Data} ->
-	    handle_recv_data(State, Data);
+            handle_recv_data(State, Data);
 
         {ssl, Sock, Data} ->
-	    handle_recv_data(State, Data);
+            handle_recv_data(State, Data);
 
-	% socket closed
+        % socket closed
         {tcp_closed, Sock} ->
-	    handle_closed(Sock);
+            handle_closed(Sock);
 
         {ssl_closed, Sock} ->
-	    handle_closed(Sock);
+            handle_closed(Sock);
 
-	% socket errors
+        % socket errors
         {tcp_error, Sock, Reason} ->
-	    handle_error(Sock, Reason);
+            handle_error(Sock, Reason);
 
         {ssl_error, Sock, Reason} ->
-	    handle_error(Sock, Reason);
+            handle_error(Sock, Reason);
 
-	% close socket and quit
+        % close socket and quit
         quit ->
             SocketType:close(Sock)
 
     after ?RECV_TIMEOUT ->
-	    error_logger:format("No activity for more than ~b microseconds. Are we stuck?~n", [?RECV_TIMEOUT]),
-	    SocketType:close(Sock)
+            error_logger:format("No activity for more than ~b microseconds. Are we stuck?~n", [?RECV_TIMEOUT]),
+            SocketType:close(Sock)
     end.
 
 code_change(State) -> loop(State).
