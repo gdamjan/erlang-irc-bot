@@ -27,7 +27,7 @@ handle_event(Msg, State) ->
             Mssg = strip_last_byte(Rest),
             {Channel, Secs_prev} = decode(Mssg),
             Lag = integer_to_list(Secs - Secs_prev),
-            Ref:privmsg(<<"#",Channel/binary>>, [Sender, " is lagging ", Lag, " oranges"]);
+            Ref:privmsg(<<"#",Channel/binary>>, [Sender, " is lagging ", Lag, " bananas"]);
 
         _ ->
             ok
