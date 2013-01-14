@@ -11,7 +11,7 @@ start_link(Parent, Host, Port, Ssl)  ->
     spawn_link(?MODULE, connect, [Parent, Host, Port, Ssl]).
 
 connect(Parent, Host, Port) ->
-    connect(Parent, Host, Port, false);
+    connect(Parent, Host, Port, false).
 
 connect(Parent, Host, Port, Ssl) ->
     Options = [ binary, {active, true}, {packet, line}, {keepalive, true},
