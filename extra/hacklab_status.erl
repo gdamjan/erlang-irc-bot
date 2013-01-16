@@ -57,7 +57,7 @@ receive_chunk(_RequestId, Callback, Body, Len) when Len =< 0 ->
         {0} ->
             Callback(<<"Хаклабот е затворен. :(">>);
         {1} ->
-            Callback(<<"Хаклабот е отворен. Дојди! (http://status.spodeli.org)">>);
+            Callback(<<"Хаклабот е отворен. Дојди! (http://status.spodeli.org)">>)
     end;
 
 receive_chunk(RequestId, Callback, Body, Len)  ->
