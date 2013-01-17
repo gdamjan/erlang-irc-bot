@@ -19,15 +19,15 @@ handle_event(Msg, Channels) ->
                 sets:to_list(Channels)
             ),
             {ok, Channels};
-        {in, _Ref, [_Server, _, <<"JOIN">>, Channel]} ->
+        %%{in, _Ref, [_Server, _, <<"JOIN">>, Channel]} ->
         %% keep track of channels
-            {ok, sets:add_element(Channel, Channels)};
-        {in, _Ref, [_Server, _, <<"PART">>, Channel]} ->
+        %%    {ok, sets:add_element(Channel, Channels)};
+        %%{in, _Ref, [_Server, _, <<"PART">>, Channel]} ->
         %% keep track of channels
-            {ok, sets:del_element(Channel, Channels)};
-        {in, _Ref, [_Server, _, <<"KICK">>, Channel|_]} ->
+        %%    {ok, sets:del_element(Channel, Channels)};
+        %%{in, _Ref, [_Server, _, <<"KICK">>, Channel|_]} ->
         %% keep track of channels
-            {ok, sets:del_element(Channel, Channels)};
+        %%    {ok, sets:del_element(Channel, Channels)};
         _ ->
             {ok, Channels}
     end.
