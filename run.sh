@@ -10,3 +10,8 @@ exec erl +K true -noinput -noshell \
         -sasl errlog_type error \
         -sname ircbot@localhost \
         -s ircbot_app -conf settings.cfg
+
+# To connect to a running instance:
+#
+#  erl -remsh ircbot@localhost -sname rem
+#
