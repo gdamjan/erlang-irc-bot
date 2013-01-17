@@ -39,7 +39,7 @@ gfl(Query, Callback) ->
     Headers = [{"User-Agent", "Mozilla/5.0 (erlang-irc-bot)"}],
     Q = ircbot_lib:escape_uri(Query),
     Url = "http://www.google.com/search?btnI=I%27m+Feeling+Lucky&q=" ++ Q,
-    case http:request(get, {Url, Headers}, [{autoredirect, false}], []) of
+    case httpc:request(get, {Url, Headers}, [{autoredirect, false}], []) of
         {ok, {{_,302,_}, ResponseHeaders, _}} ->
             Callback(proplists:get_value("location", ResponseHeaders));
         {ok, {{_,200,_}, _, _}} ->
