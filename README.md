@@ -7,6 +7,12 @@ channels such as #lugola.
 
 The master branch has more generic code.
 
+To compile use rebar:
+
+    rebar get-deps
+    rebar compile
+
+
 
 An extensible ircbot written in Erlang
 ======================================
