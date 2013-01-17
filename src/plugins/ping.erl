@@ -20,14 +20,14 @@ handle_event(Msg, State) ->
         {in, Ref, [_Sender, _User, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!ping ", Who/binary>>]} ->
             {_, Secs, _} = os:timestamp(),
             Mssg = encode(Channel, Secs),
-            Ref:privmsg(Who, ["\^APING ", Mssg, "\^A"]);
+            Ref:privmsg(Who, <<"\^APING ", Mssg/binary, "\^A">>);
 
         {in, Ref, [Sender, _User, <<"NOTICE">>, _Nick, <<"\^APING ", Rest/binary>>]} ->
             {_, Secs, _} = os:timestamp(),
             Mssg = strip_last_byte(Rest),
             {Channel, Secs_prev} = decode(Mssg),
             Lag = integer_to_list(Secs - Secs_prev),
-            Ref:privmsg(<<"#",Channel/binary>>, [Sender, " is lagging ", Lag, " oranges"]);
+            Ref:privmsg(<<"#",Channel/binary>>, <<Sender/binary, " is lagging ", Lag/binary, " oranges">>);
 
         _ ->
             ok

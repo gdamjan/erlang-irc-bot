@@ -13,9 +13,9 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
         {in, Ref, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^AVERSION\^A">>]} ->
-            Ref:notice(Sender, ["\^AVERSION ", ?VERSION, "\^A"]);
+            Ref:notice(Sender, <<"\^AVERSION ", ?VERSION/binary, "\^A">>);
         {in, Ref, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^APING ", Rest/binary>>]} ->
-            Ref:notice(Sender, ["\^APING ", Rest]);
+            Ref:notice(Sender, <<"\^APING ", Rest/binary>>);
         _ ->
             ok
     end,

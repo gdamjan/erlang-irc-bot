@@ -28,7 +28,8 @@ handle_event(Msg, State) ->
                 _ ->
                     R = random:uniform()
             end,
-            Ref:privmsg(<<"#",Channel/binary>>, io_lib:format("I'm rolling a ~p", [R]));
+            RB = list_to_binary(io_lib:format("~p",[R])),
+            Ref:privmsg(<<"#",Channel/binary>>, <<"I'm rolling a ", RB/binary>>);
         _ ->
             ok
     end,

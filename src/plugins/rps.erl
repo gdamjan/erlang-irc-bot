@@ -13,19 +13,19 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
        {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!rock">>]} ->
-            Ref:privmsg(<<"#",Channel/binary>>, [Nick, play(rock)]),
+            Ref:privmsg(<<"#",Channel/binary>>, play(Nick, rock)),
             {ok, State};
        {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!paper">>]} ->
-            Ref:privmsg(<<"#",Channel/binary>>, [Nick, play(paper)]),
+            Ref:privmsg(<<"#",Channel/binary>>, play(Nick, paper)),
             {ok, State};
        {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!scissors">>]} ->
-            Ref:privmsg(<<"#",Channel/binary>>, [Nick, play(scissors)]),
+            Ref:privmsg(<<"#",Channel/binary>>, play(Nick, scissors)),
             {ok, State};
        {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!spock">>]} ->
-            Ref:privmsg(<<"#",Channel/binary>>, [Nick, play(spock)]),
+            Ref:privmsg(<<"#",Channel/binary>>, play(Nick, spock)),
             {ok, State};
        {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!lizard">>]} ->
-            Ref:privmsg(<<"#",Channel/binary>>, [Nick, play(lizard)]),
+            Ref:privmsg(<<"#",Channel/binary>>, play(Nick, lizard)),
             {ok, State};
         _ ->
             {ok, State}
@@ -38,15 +38,16 @@ terminate(_Args, _State) -> ok.
 
 
 %% Play a game of rock-paper-scissors
-play(PlayerAttack) ->
+play(Nick, PlayerAttack) ->
     ComputerAttack = get_computer_attack(),
+    CAb = atom_to_binary(ComputerAttack, utf8),
     case get_result(PlayerAttack, ComputerAttack) of
         win ->
-            [": I chose ", atom_to_list(ComputerAttack), ". You win!"];
+            <<Nick/binary, ": I chose ", CAb/binary, ". You win!">>;
         draw ->
-            [": I chose ", atom_to_list(ComputerAttack), ". It's a draw."];
+            <<Nick/binary, ": I chose ", CAb/binary, ". It's a draw.">>;
         lose ->
-            [": I chose ", atom_to_list(ComputerAttack), ". I WIN!"]
+            <<Nick/binary, ": I chose ", CAb/binary, ". I WIN!">>
     end.
 
 %% choose a computer attack at random
