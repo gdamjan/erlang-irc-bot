@@ -53,10 +53,10 @@ receive_chunk(_RequestId, Callback, Body, Len) when Len =< 0 ->
     {Json} = ejson:decode(Body),
     Current_Value = proplists:get_value(<<"current_value">>, Json),
 
-    case {Current_Value} of
-        {0} ->
+    case Current_Value of
+        <<"0">> ->
             Callback(<<"Хаклабот е затворен. :(">>);
-        {1} ->
+        <<"1">> ->
             Callback(<<"Хаклабот е отворен. Дојди! (http://status.spodeli.org)">>)
     end;
 
