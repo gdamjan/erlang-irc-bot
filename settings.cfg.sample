@@ -1,7 +1,32 @@
-{nickname, "erlbot_test"}.
-{server,   {"chat.freenode.net", 6667}}.
-{channels, ["#erlbot_test"]}.
-{plugins, [
-  {'plugins.uptime', []},
-  {'plugins.rps', []}
+{connection, [
+    {name, {local, freenode}},
+    {nickname, "erlbot--"},
+    {server,   {"chat.freenode.net", 6667}},
+    {channels, [
+        "#lugola",
+        "#razmjenavjestina",
+        "#nsnd",
+        "#hklbgd",
+        "#ubuntu-mk",
+        "#it.com.mk",
+        "#manganacija",
+        "#luvit",
+        "#drupal-balkan"
+    ]},
+    {plugins, [
+        {'plugins.uptime', []},
+        {'plugins.nickserv', ["<nickserv password>"]},
+        {'plugins.rps', []},
+        {'plugins.tell', []},
+        {'plugins.title', []},
+        {'plugins.couch_log', ["irclog", [{basic_auth, {"<user>", "<password>"}}]]},
+        {'plugins.viewer', []},
+        {'plugins.google', []},
+        {'plugins.autojoin', []},
+        {'plugins.roll', []},
+        {'plugins.ping', []},
+        {'plugins.help', []},
+        {'plugins.prisutni', []},
+        {'plugins.hacklab_status', []}
+    ]}
 ]}.
