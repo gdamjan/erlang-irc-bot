@@ -4,7 +4,7 @@
 -behaviour(gen_event).
 -export([init/1, handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
 
--include("couchbeam.hrl").
+-include_lib("couchbeam/include/couchbeam.hrl").
 
 %% This plugin requires couchbeam (http://benoitc.github.com/couchbeam/)
 -import(couchbeam).
@@ -63,6 +63,9 @@ log_topic(Db, Sender, Channel, Topic) ->
     ]},
     catch couchbeam:save_doc(Db, Doc).
 
+log_out(Db, Me, Channel, Text) ->
+    ok.
+
 handle_event(Msg, Db) ->
     case Msg of
         {in, _Ref, [Sender, _Name, <<"PRIVMSG">>, <<"#", Channel/binary>>, Text]} ->
@@ -72,7 +75,7 @@ handle_event(Msg, Db) ->
             log_topic(Db, Sender, Channel, Text),
             {ok, Db};
         {out, _Ref, [<<"PRIVMSG">>, <<"#", Channel/binary>>, Text]} ->
-            log(Db, "**", Channel, Text),
+            log_out(Db, "**", Channel, Text),
             {ok, Db};
         _ ->
             {ok, Db}
