@@ -9,12 +9,12 @@
 
 -import(ejson).
 -import(proplists).
--import(httpc).
--import(inets).
+-import(hackney).
 
+-define(MAXBODY, 10000).
 
 init(_Args) ->
-    inets:start(),
+    hackney:start(),
     {ok, ok}.
 
 
@@ -42,42 +42,28 @@ fetch(Url, Ref, Channel) ->
     spawn(fun() -> fetcher(Url, F) end).
 
 fetcher(Url, Callback) ->
-    Headers = [{"User-Agent", "Mozilla/5.0 (erlang-irc-bot)"}],
-    {ok, RequestId} = httpc:request(get, {Url, Headers}, [], [{sync, false}, {stream, self}]),
-    receive_chunk(RequestId, Callback, [], 10000).
+    Headers = [{<<"User-Agent">>, <<"Mozilla/5.0 (erlang-irc-bot)">>}],
+    Options = [{recv_timeout, 5000}, {follow_redirect, true}],
+    {ok, StatusCode, RespHeaders, Client} = hackney:request(get, Url, Headers, <<>>, Options),
+    {ok, Body, Client1} = hackney:body(?MAXBODY, Client),
+    case StatusCode of
+        200 ->
+            {Json} = ejson:decode(Body),
+            [{Counter}|_] = proplists:get_value(<<"counters">>, Json),
+            Count = proplists:get_value(<<"count">>, Counter),
+            CountS = integer_to_list(Count),
+            People = proplists:get_value(<<"present">>, Json),
 
-%% callback function called as chunks from http are received
-%% when enough data is received (Len =< 0) process the json
-
-receive_chunk(_RequestId, Callback, Body, Len) when Len =< 0 ->
-    {Json} = ejson:decode(Body),
-    [{Counter}|_] = proplists:get_value(<<"counters">>, Json),
-    Count = proplists:get_value(<<"count">>, Counter),
-    CountS = integer_to_list(Count),
-    People = proplists:get_value(<<"present">>, Json),
-
-    case {Count, People} of
-        {0, _} ->
-            Callback(<<"во хаклаб нема никој :(">>);
-        {_, []} ->
-            Callback([<<"во хаклаб има ">>, CountS, <<" уреди">>]);
+            case {Count, People} of
+                {0, _} ->
+                    Callback(<<"во хаклаб нема никој :(">>);
+                {_, []} ->
+                    Callback([<<"во хаклаб има ">>, CountS, <<" уреди">>]);
+                _ ->
+                    Names = [ proplists:get_value(<<"name">>, Person) || {Person} <- People ],
+                    Callback([<<"Присутни: ">>, ircbot_lib:iolist_join(Names, ", "), <<". Вкупно уреди: ">>, CountS])
+            end;
         _ ->
-            Names = [ proplists:get_value(<<"name">>, Person) || {Person} <- People ],
-            Callback([<<"Присутни: ">>, ircbot_lib:iolist_join(Names, ", "), <<". Вкупно уреди: ">>, CountS])
-    end;
-
-receive_chunk(RequestId, Callback, Body, Len)  ->
-    receive
-        {http,{RequestId, stream_start, _Headers}} ->
-            receive_chunk(RequestId, Callback, Body, Len);
-
-        {http,{RequestId, stream, Data}} ->
-            Size = size(Data),
-            receive_chunk(RequestId, Callback, Body ++ [Data], Len - Size);
-
-        {http,{RequestId, stream_end, _Headers}} ->
-            receive_chunk(RequestId, Callback, Body, 0)
-    after 10000 ->
-        ok
-    end.
-
+            Callback(<<"{error}">>)
+    end,
+    hackney:close(Client1).
