@@ -6,11 +6,11 @@
 
 -import(ircbot_lib).
 -import(proplists).
--import(http).
--import(inets).
+-import(hackney).
+-import(hackney_url).
 
 init(_Args) ->
-    inets:start(),
+    hackney:start(),
     {ok, []}.
 
 handle_event(Msg, State) ->
@@ -32,18 +32,23 @@ terminate(_Args, _State) -> ok.
 
 
 fetch(Query, Ref, Channel) ->
-    Callback = fun(Url) -> Ref:privmsg(Channel, Url) end,
+    Callback = fun(Msg) -> Ref:privmsg(Channel, Msg) end,
     spawn(fun() -> gfl(Query, Callback) end).
 
 gfl(Query, Callback) ->
-    Headers = [{"User-Agent", "Mozilla/5.0 (erlang-irc-bot)"}],
-    Q = ircbot_lib:escape_uri(Query),
-    Url = "http://www.google.com/search?btnI=I%27m+Feeling+Lucky&q=" ++ Q,
-    case httpc:request(get, {Url, Headers}, [{autoredirect, false}], []) of
-        {ok, {{_,302,_}, ResponseHeaders, _}} ->
-            Callback(proplists:get_value("location", ResponseHeaders));
-        {ok, {{_,200,_}, _, _}} ->
-            Callback(["No match, see: ", Url]);
+    Q = hackney_url:urlencode(Query),
+    Url = <<"http://www.google.com/search?btnI=I%27m+Feeling+Lucky&q=", Q/binary>>,
+    Headers = [{<<"User-Agent">>, <<"Mozilla/5.0 (erlang-irc-bot)">>}],
+    Options = [{recv_timeout, 5000}],
+    {ok, StatusCode, RespHeaders, Client} = hackney:request(get, Url, Headers, <<>>, Options),
+    case StatusCode of
+        302 ->
+            LuckyResult = proplists:get_value(<<"Location">>, RespHeaders),
+            Callback(LuckyResult),
+            hackney:close(Client);
+        200 ->
+            Callback(["No match, see: ", Url]),
+            hackney:close(Client);
         _ ->
-            Callback("search error")
+            ok
     end.
