@@ -21,8 +21,10 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
         % explicit command to fetch prisutni.spodeli.org
-        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, <<"#lugola">>, <<"!prisutni">>]} ->
-            fetch("http://prisutni.spodeli.org/status?limit=1", Ref, <<"#lugola">>),
+        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel = <<"#lugola">>, <<"!prisutni">>]} ->
+            Url = <<"http://prisutni.spodeli.org/status?limit=1">>,
+            Callback = fun(Answer) -> Ref:privmsg(Channel, Answer) end,
+            spawn(fun() -> fetcher(Url, Callback) end),
             {ok, State};
        _ ->
             {ok, State}
@@ -34,17 +36,12 @@ terminate(_Args, _State) -> ok.
 
 
 
-% Fetch the json, but not more than 10kbytes
-%% The function gets spawned as a separate process, and fails silently on any
-%% error.
-fetch(Url, Ref, Channel) ->
-    F = fun(Answer) -> Ref:privmsg(Channel, Answer) end,
-    spawn(fun() -> fetcher(Url, F) end).
-
+%% The function gets spawned as a separate process,
+%% and fails silently on many errors.
 fetcher(Url, Callback) ->
     Headers = [{<<"User-Agent">>, <<"Mozilla/5.0 (erlang-irc-bot)">>}],
     Options = [{recv_timeout, 5000}, {follow_redirect, true}],
-    {ok, StatusCode, RespHeaders, Client} = hackney:request(get, Url, Headers, <<>>, Options),
+    {ok, StatusCode, _RespHeaders, Client} = hackney:request(get, Url, Headers, <<>>, Options),
     {ok, Body, Client1} = hackney:body(?MAXBODY, Client),
     case StatusCode of
         200 ->
