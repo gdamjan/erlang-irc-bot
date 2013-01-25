@@ -5,9 +5,9 @@
 -export([init/1, handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
 
 -import(ircbot_lib).
--import(proplists).
 -import(hackney).
 -import(hackney_url).
+-import(hackney_headers).
 
 init(_Args) ->
     hackney:start(),
@@ -43,7 +43,7 @@ gfl(Query, Callback) ->
     {ok, StatusCode, RespHeaders, Client} = hackney:request(get, Url, Headers, <<>>, Options),
     case StatusCode of
         302 ->
-            LuckyResult = proplists:get_value(<<"Location">>, RespHeaders),
+            LuckyResult =  hackney_headers:get_value(<<"location">>, hackney_headers:new(RespHeaders)),
             Callback(LuckyResult),
             hackney:close(Client);
         200 ->
