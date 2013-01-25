@@ -10,15 +10,14 @@
 -import(lists).
 -import(proplists).
 -import(dict).
--import(httpc).
--import(inets).
--import(ssl).
 -import(string).
+-import(hackney).
+-import(hackney_headers).
 
+-define(MAXBODY, 10000).
 
 init(_Args) ->
-    inets:start(),
-    ssl:start(),
+    hackney:start(),
     {ok, dict:new()}.
 
 handle_event(Msg, State) ->
@@ -76,37 +75,21 @@ fetch(Url, Ref, Channel) ->
 
 fetcher(Url, Callback) ->
     Url1 = sanitize_url(Url),
-    Headers = [{"User-Agent", "Mozilla/5.0 (erlang-irc-bot)"}],
-    {ok, RequestId} = httpc:request(get, {Url1, Headers}, [], [{sync, false}, {stream, self}]),
-    receive_chunk(RequestId, Callback, [], 10000).
-
-%% callback function called as chunks from http are received
-%% when enough data is received (Len =< 0) process the info
-
-receive_chunk(_RequestId, Callback, Body, Len) when Len =< 0 ->
-    {match, [Title]} = re:run(Body, "<title.*?>([\\s\\S]*?)</title>", [caseless, {capture, [1], binary}]),
-    NewTitle = re:replace(Title, "\\s+", " ", [global]),
-    % MAYBE recode charset to UTF-8
-    Callback(NewTitle);
-
-receive_chunk(RequestId, Callback, Body, Len) ->
-    receive
-        {http,{RequestId, stream_start, Headers}} ->
-            ContentType = proplists:get_value("content-type", Headers, ""),
-            % this will fail if the content-type is not text/*
-            true = lists:prefix("text/", ContentType),
-            receive_chunk(RequestId, Callback, Body, Len);
-
-        {http,{RequestId, stream, Data}} ->
-            Size = size(Data),
-            receive_chunk(RequestId, Callback, Body ++ [Data], Len - Size);
-
-        {http,{RequestId, stream_end, Headers}} ->
-            ContentType = proplists:get_value("content-type", Headers, ""),
-            true = lists:prefix("text/", ContentType),
-            receive_chunk(RequestId, Callback, Body, 0)
-    after 10000 ->
-        ok
+    Headers = [{<<"User-Agent">>, <<"Mozilla/5.0 (erlang-irc-bot)">>}],
+    Options = [{recv_timeout, 5000}, {follow_redirect, true}],
+    {ok, StatusCode, RespHeaders, Client} = hackney:request(get, Url1, Headers, <<>>, Options),
+    case StatusCode of
+        200 ->
+            <<"text/", _/binary>> = hackney_headers:get_value(<<"content-type">>, hackney_headers:new(RespHeaders)),
+            {ok, Body, Client1} = hackney:body(?MAXBODY, Client),
+            {match, [Title]} = re:run(Body, "<title.*?>([\\s\\S]*?)</title>", [caseless, {capture, [1], binary}]),
+            NewTitle = re:replace(Title, "\\s+", " ", [global]),
+            % MAYBE recode charset to UTF-8
+            Callback(NewTitle),
+            hackney:close(Client1);
+        _ ->
+            Callback(<<"{error}">>),
+            hackney:close(Client)
     end.
 
 
