@@ -6,12 +6,14 @@ cd $BASEDIR
 ERL_LIBS=$BASEDIR:$BASEDIR/deps
 export ERL_LIBS
 
-exec erl +K true -noinput -noshell \
-        -sasl errlog_type error \
-        -sname ircbot@localhost \
-        -s ircbot_app -conf settings.cfg
+SNAME=ircbot@localhost
 
-# To connect to a running instance:
-#
-#  erl -remsh ircbot@localhost -sname rem
-#
+
+if [ "$1" = "shell" ]; then
+    erl -remsh $SNAME -sname rem
+else
+    exec erl +K true -noinput -noshell \
+        -sasl errlog_type error \
+        -sname $SNAME \
+        -s ircbot_app -conf settings.cfg
+fi
