@@ -61,6 +61,7 @@ fetcher(Url, Callback) ->
                     Callback([<<"Присутни: ">>, ircbot_lib:iolist_join(Names, ", "), <<". Вкупно уреди: ">>, CountS])
             end;
         _ ->
-            Callback(<<"{error}">>)
+            N = list_to_binary(integer_to_list(StatusCode)),
+            Callback(<<"{error ", N/binary, "}">>)
     end,
     hackney:close(Client1).

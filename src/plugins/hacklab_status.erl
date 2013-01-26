@@ -56,6 +56,7 @@ fetcher(Url, Callback) ->
                     Callback(<<"Хаклабот е отворен. Дојди! (http://status.spodeli.org)">>)
             end;
         _ ->
-            Callback(<<"{error}">>)
+            N = list_to_binary(integer_to_list(StatusCode)),
+            Callback(<<"{error ", N/binary, "}">>)
     end,
     hackney:close(Client1).

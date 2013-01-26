@@ -88,7 +88,8 @@ fetcher(Url, Callback) ->
             Callback(NewTitle),
             hackney:close(Client1);
         _ ->
-            Callback(<<"{error}">>),
+            N = list_to_binary(integer_to_list(StatusCode)),
+            Callback(<<"{error ", N/binary, "}">>),
             hackney:close(Client)
     end.
 
