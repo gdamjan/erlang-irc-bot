@@ -1,62 +1,62 @@
-%% Yes I use an Erlang parameterized module - so kill me
-
--module(ircbot_api, [IrcbotRef]).
+-module(ircbot_api).
 -author("gdamjan@gmail.com").
 
--export([pid/0, connect/0, disconnect/0, reconnect/0]).
--export([send_event/1, send_data/1, send_message/3]).
--export([privmsg/2, notice/2, join/1, part/1, ping/1, pong/1]).
--export([add_plugin/2, delete_plugin/2, which_plugins/0]).
+-export([new/1, pid/1, connect/1, disconnect/1, reconnect/1]).
+-export([send_event/2, send_data/2, send_message/4]).
+-export([privmsg/3, notice/3, join/2, part/2, ping/2, pong/2]).
+-export([add_plugin/3, delete_plugin/3, which_plugins/1]).
 
+new(IrcbotRef) ->
+    {?MODULE, IrcbotRef}.
 
-pid() ->
+pid({?MODULE, IrcbotRef}) ->
     IrcbotRef.
 
-connect() ->
+connect({?MODULE, IrcbotRef}) ->
     gen_fsm:send_event(IrcbotRef, connect).
 
-disconnect() ->
+disconnect({?MODULE, IrcbotRef}) ->
     gen_fsm:sync_send_all_state_event(IrcbotRef, disconnect).
 
-reconnect() ->
-    disconnect(),
-    connect().
+reconnect({?MODULE, IrcbotRef}) ->
+    disconnect({?MODULE, IrcbotRef}),
+    connect({?MODULE, IrcbotRef}).
 
 
-add_plugin(Plugin, Args) ->
+add_plugin(Plugin, Args, {?MODULE, IrcbotRef}) ->
     gen_fsm:sync_send_all_state_event(IrcbotRef, {add_plugin, Plugin, Args}).
 
-delete_plugin(Plugin, Args) ->
+delete_plugin(Plugin, Args, {?MODULE, IrcbotRef}) ->
     gen_fsm:sync_send_all_state_event(IrcbotRef, {delete_plugin, Plugin, Args}).
 
-which_plugins() ->
+which_plugins({?MODULE, IrcbotRef}) ->
     gen_fsm:sync_send_all_state_event(IrcbotRef, which_plugins).
 
 
-send_event(Event) ->
+send_event(Event, {?MODULE, IrcbotRef}) ->
     gen_fsm:send_event(IrcbotRef, Event).
 
-send_data(Data) ->
-    send_event({send, Data}).
+send_data(Data, {?MODULE, IrcbotRef}) ->
+    send_event({send, Data}, {?MODULE, IrcbotRef}).
 
-send_message(Cmd, Destination, Msg) ->
-    send_data([Cmd, " ", Destination, " :", Msg]).
+send_message(Cmd, Destination, Msg, {?MODULE, IrcbotRef}) ->
+    send_data([Cmd, " ", Destination, " :", Msg], {?MODULE, IrcbotRef}).
 
 
-privmsg(Destination, Msg) ->
-    send_message("PRIVMSG", Destination, Msg).
+privmsg(Destination, Msg, {?MODULE, IrcbotRef}) ->
+    send_message("PRIVMSG", Destination, Msg, {?MODULE, IrcbotRef}).
 
-notice(Destination, Msg) ->
-    send_message("NOTICE", Destination, Msg).
+notice(Destination, Msg, {?MODULE, IrcbotRef}) ->
+    send_message("NOTICE", Destination, Msg, {?MODULE, IrcbotRef}).
 
-join(Channel) ->
-    send_data(["JOIN ", Channel]).
+join(Channel, {?MODULE, IrcbotRef}) ->
+    send_data(["JOIN ", Channel], {?MODULE, IrcbotRef}).
 
-part(Channel) ->
-    send_data(["PART ", Channel]).
+part(Channel, {?MODULE, IrcbotRef}) ->
+    send_data(["PART ", Channel], {?MODULE, IrcbotRef}).
 
-ping(Server) ->
-    send_data(["PING :", Server]).
+ping(Server, {?MODULE, IrcbotRef}) ->
+    send_data(["PING :", Server], {?MODULE, IrcbotRef}).
 
-pong(Server) ->
-    send_data(["PONG :", Server]).
+pong(Server, {?MODULE, IrcbotRef}) ->
+    send_data(["PONG :", Server], {?MODULE, IrcbotRef}).
