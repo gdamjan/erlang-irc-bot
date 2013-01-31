@@ -22,7 +22,7 @@ handle_event(Msg, State) ->
     case Msg of
         % explicit command to fetch prisutni.spodeli.org
         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, Channel = <<"#lugola">>, <<"!prisutni">>]} ->
-            Url = <<"http://prisutni.spodeli.org/status?limit=1">>,
+            Url = <<"http://status.spodeli.org/status?limit=1">>,
             Callback = fun(Answer) -> Ref:privmsg(Channel, Answer) end,
             spawn(fun() -> fetcher(Url, Callback) end),
             {ok, State};
