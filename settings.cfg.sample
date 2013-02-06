@@ -11,6 +11,7 @@
         "#it.com.mk",
         "#manganacija",
         "#luvit",
+        "#devbin",
         "#drupal-balkan"
     ]},
     {plugins, [
