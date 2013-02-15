@@ -6,13 +6,13 @@
 
 -import(ircbot_lib).
 
--import(re).
 -import(lists).
--import(proplists).
 -import(dict).
 -import(string).
 -import(hackney).
 -import(hackney_headers).
+-import(mochiweb_html).
+-import(mochiweb_xpath).
 
 -define(MAXBODY, 10000).
 
@@ -82,10 +82,9 @@ fetcher(Url, Callback) ->
         200 ->
             <<"text/", _/binary>> = hackney_headers:get_value(<<"content-type">>, hackney_headers:new(RespHeaders)),
             {ok, Body, Client1} = hackney:body(?MAXBODY, Client),
-            {match, [Title]} = re:run(Body, "<title.*?>([\\s\\S]*?)</title>", [caseless, {capture, [1], binary}]),
-            NewTitle = re:replace(Title, "\\s+", " ", [global]),
-            % MAYBE recode charset to UTF-8
-            Callback(NewTitle),
+            Tree = mochiweb_html:parse(Body),
+            [{_, _, Title}|_] = mochiweb_xpath:execute("//title",Tree),
+            Callback(Title),
             hackney:close(Client1);
         _ ->
             N = list_to_binary(integer_to_list(StatusCode)),
