@@ -3,7 +3,7 @@
 
 -export([new/1, pid/1, connect/1, disconnect/1, reconnect/1]).
 -export([send_event/2, send_data/2, send_message/4]).
--export([privmsg/3, notice/3, join/2, part/2, ping/2, pong/2]).
+-export([privmsg/3, notice/3, join/2, part/2, ping/2, pong/2, nick/2]).
 -export([add_plugin/3, delete_plugin/3, which_plugins/1]).
 
 new(IrcbotRef) ->
@@ -60,3 +60,6 @@ ping(Server, {?MODULE, IrcbotRef}) ->
 
 pong(Server, {?MODULE, IrcbotRef}) ->
     send_data(["PONG :", Server], {?MODULE, IrcbotRef}).
+
+nick(Nick, {?MODULE, IrcbotRef}) ->
+    send_data(["NICK ", Nick], {?MODULE, IrcbotRef}).
