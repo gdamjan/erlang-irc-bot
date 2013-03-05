@@ -1,4 +1,4 @@
--module(plugins.couch_log).
+-module(ircbot_plugin_couch_log).
 -author("gdamjan@gmail.com").
 
 -behaviour(gen_event).

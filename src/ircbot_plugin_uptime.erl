@@ -1,4 +1,4 @@
--module(plugins.uptime).
+-module(ircbot_plugin_uptime).
 -author("gdamjan@gmail.com").
 
 -behaviour(gen_event).

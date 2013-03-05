@@ -1,4 +1,4 @@
--module(pong_plugin).
+-module(ircbot_plugin_pong).
 -author("gdamjan@gmail.com").
 
 -behaviour(gen_event).

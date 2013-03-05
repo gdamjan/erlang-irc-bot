@@ -1,4 +1,4 @@
--module(plugins.prisutni).
+-module(ircbot_plugin_prisutni).
 -author("gorgi.kosev@gmail.com").
 
 -behaviour(gen_event).

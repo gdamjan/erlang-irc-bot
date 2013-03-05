@@ -1,4 +1,4 @@
--module(ctcp_plugin).
+-module(ircbot_plugin_ctcp).
 -author("gdamjan@gmail.com").
 
 -behaviour(gen_event).

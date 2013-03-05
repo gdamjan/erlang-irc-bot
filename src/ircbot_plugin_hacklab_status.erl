@@ -1,4 +1,4 @@
--module(plugins.hacklab_status).
+-module(ircbot_plugin_hacklab_status).
 -author("glisha").
 
 -behaviour(gen_event).
