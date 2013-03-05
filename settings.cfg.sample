@@ -15,19 +15,19 @@
         "#drupal-balkan"
     ]},
     {plugins, [
-        {'plugins.uptime', []},
-        {'plugins.nickserv', ["<nickserv password>"]},
-        {'plugins.rps', []},
-        {'plugins.tell', []},
-        {'plugins.title', []},
-        {'plugins.couch_log', ["irclog", [{basic_auth, {"<user>", "<password>"}}]]},
-        {'plugins.viewer', []},
-        {'plugins.google', []},
-        {'plugins.autojoin', []},
-        {'plugins.roll', []},
-        {'plugins.ping', []},
-        {'plugins.help', []},
-        {'plugins.prisutni', []},
-        {'plugins.hacklab_status', []}
+        {'ircbot_plugin_uptime', []},
+        {'ircbot_plugin_nickserv', ["<nickserv password>"]},
+        {'ircbot_plugin_rps', []},
+        {'ircbot_plugin_tell', []},
+        {'ircbot_plugin_title', []},
+        {'ircbot_plugin_couch_log', ["irclog", [{basic_auth, {"<user>", "<password>"}}]]},
+        {'ircbot_plugin_viewer', []},
+        {'ircbot_plugin_google', []},
+        {'ircbot_plugin_autojoin', []},
+        {'ircbot_plugin_roll', []},
+        {'ircbot_plugin_ping', []},
+        {'ircbot_plugin_help', []},
+        {'ircbot_plugin_prisutni', []},
+        {'ircbot_plugin_hacklab_status', []}
     ]}
 ]}.
