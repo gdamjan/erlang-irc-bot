@@ -44,31 +44,29 @@ Quick start
 
 First, compile everything:
 
-    make
+    rebar get-deps
+    rebar compile
 
 Second, edit and rename the settings.cfg.sample file (to settings.cfg). Then start
 an Erlang REPL shell. Make sure the module path is set to the ./ebin/
 directory, where all the compiled .beam files are:
 
-    erl -pa ./ebin
+    ERL_LIBS=.:./deps erl
 
-or simply:
-
-    make run-shell
 
 Once in the Erlang REPL you can start the bot with:
 
     {ok, Settings} = file:consult("settings.cfg").
     {ok, IrcBot} = ircbot_fsm:start(Settings).
     gen_fsm:send_event(IrcBot, connect).
-    gen_fsm:sync_send_all_state_event(IrcBot, {add_plugin, 'plugins.rps', []}).
+    gen_fsm:sync_send_all_state_event(IrcBot, {add_plugin, 'ircbot_plugin_rps', []}).
 
 You can make changes to the source code & plugins while the bot is running.
-Just hit "make" in another terminal and then, if everything is ok, in the Erlang REPL run:
+Just hit "rebar compile" in another terminal and then, if everything is ok, in the Erlang REPL run:
 
-    l('plugins.rps').
+    l('ircbot_plugin_rps').
 
-to reload the 'plugins.rps' rock-paper-scissors module.
+to reload the 'ircbot_plugin_rps' rock-paper-scissors module.
 
 or
 
@@ -92,7 +90,7 @@ too:
     {ok, Settings} = file:consult("settings.cfg").
     IrcBot = ircbot_fsm:new(Settings).
     IrcBot:connect().
-    IrcBot:add_plugin(plugins.rps, []).
+    IrcBot:add_plugin(ircbot_plugin_rps, []).
 
 
 The parametrized module feature is officially supported since Erlang R14, so
