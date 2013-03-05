@@ -6,9 +6,9 @@
 start_link(Settings) ->
     {ok, Plugins} = gen_event:start_link(),
     Channels = proplists:get_value(channels, Settings, []),
-    gen_event:add_handler(Plugins, channels_plugin, Channels),
-    gen_event:add_handler(Plugins, pong_plugin, []),
-    gen_event:add_handler(Plugins, ctcp_plugin, []),
+    gen_event:add_handler(Plugins, ircbot_plugin_channels, Channels),
+    gen_event:add_handler(Plugins, ircbot_plugin_pong, []),
+    gen_event:add_handler(Plugins, ircbot_plugin_ctcp, []),
     lists:foreach(
         fun ({Plugin, Args}) ->
             gen_event:add_handler(Plugins, Plugin, Args)
