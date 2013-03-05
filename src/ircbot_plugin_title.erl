@@ -76,7 +76,8 @@ fetcher(Url, Callback) ->
             {ok, Body, Client1} = hackney:body(?MAXBODY, Client),
             Tree = mochiweb_html:parse(Body),
             [{_, _, Title}|_] = mochiweb_xpath:execute("//title",Tree),
-            Callback(Title),
+            Title1 = re:replace(Title, "\\s+", " ", [global]),
+            Callback(Title1),
             hackney:close(Client1);
         _ ->
             N = list_to_binary(integer_to_list(StatusCode)),
