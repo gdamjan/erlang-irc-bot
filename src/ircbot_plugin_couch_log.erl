@@ -7,9 +7,6 @@
 -include_lib("couchbeam/include/couchbeam.hrl").
 
 %% This plugin requires couchbeam (http://benoitc.github.com/couchbeam/)
--import(couchbeam).
--import(application).
--import(ircbot_lib).
 
 %% Configuration (settings.cfg):
 %% {plugins, [

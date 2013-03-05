@@ -4,9 +4,6 @@
 -behaviour(gen_event).
 -export([init/1, handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
 
--import(os).
--import(crypto).
--import(base64).
 
 -define(SECRET_KEY, "abcd").
 

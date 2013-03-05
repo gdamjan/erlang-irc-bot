@@ -4,15 +4,7 @@
 -behaviour(gen_event).
 -export([init/1, handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
 
--import(ircbot_lib).
 
--import(lists).
--import(dict).
--import(string).
--import(hackney).
--import(hackney_headers).
--import(mochiweb_html).
--import(mochiweb_xpath).
 
 -define(MAXBODY, 10000).
 
