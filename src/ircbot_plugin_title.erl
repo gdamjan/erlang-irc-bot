@@ -4,16 +4,7 @@
 -behaviour(gen_event).
 -export([init/1, handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
 
--import(ircbot_lib).
 
--import(re).
--import(lists).
--import(proplists).
--import(dict).
--import(httpc).
--import(inets).
--import(ssl).
--import(string).
 
 
 init(_Args) ->
