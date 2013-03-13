@@ -1,4 +1,4 @@
--module(plugins.autojoin).
+-module(ircbot_plugin_autojoin).
 -author("gdamjan@gmail.com").
 
 -behaviour(gen_event).

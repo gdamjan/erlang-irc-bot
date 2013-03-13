@@ -1,4 +1,4 @@
--module(plugins.nickserv).
+-module(ircbot_plugin_nickserv).
 -behaviour(gen_event).
 
 -author("gdamjan@gmail.com").

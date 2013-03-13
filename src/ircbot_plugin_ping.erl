@@ -1,4 +1,4 @@
--module(plugins.ping).
+-module(ircbot_plugin_ping).
 -author("gdamjan@gmail.com").
 
 -behaviour(gen_event).

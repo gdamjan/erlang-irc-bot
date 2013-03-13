@@ -1,4 +1,4 @@
--module(channels_plugin).
+-module(ircbot_plugin_channels).
 -author("gdamjan@gmail.com").
 
 -behaviour(gen_event).

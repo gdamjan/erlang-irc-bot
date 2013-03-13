@@ -1,4 +1,4 @@
--module(plugins.rps).
+-module(ircbot_plugin_rps).
 -author("gdamjan@gmail.com").
 
 -behaviour(gen_event).
