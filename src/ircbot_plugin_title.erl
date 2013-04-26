@@ -25,6 +25,9 @@ handle_event(Msg, State) ->
         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!t">>]} ->
             NewState = fetch_last(State, Ref, <<"#",Channel/binary>>),
             {ok, NewState};
+        {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!т">>]} ->
+            NewState = fetch_last(State, Ref, <<"#",Channel/binary>>),
+            {ok, NewState};
         {in, Ref, [_Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!title">>]} ->
             NewState = fetch_last(State, Ref, <<"#",Channel/binary>>),
             {ok, NewState};
