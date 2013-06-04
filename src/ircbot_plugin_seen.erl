@@ -61,7 +61,7 @@ remove_any_status([X|XS]) ->
             XS;
         true ->
             [X] ++ XS
-    end.        
+    end.
 
 recurse_newnames([], _, D, _) -> D;
 recurse_newnames([X|XS], N, D, Channel) ->
@@ -71,7 +71,6 @@ recurse_newnames([X|XS], N, D, Channel) ->
 
 register_newnames(Ref,Channel, Names) ->
     L = string:tokens(binary_to_list(Names), " "),
-    Ref:privmsg(["#", Channel], binary_to_list(Names)),
     {ok, recurse_newnames(L, 0, dict:new(), Channel)}.
 
 handle_nickchange(State, Old, New) ->
