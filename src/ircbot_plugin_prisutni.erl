@@ -37,8 +37,8 @@ terminate(_Args, _State) -> ok.
 fetcher(Url, Callback) ->
     Headers = [{<<"User-Agent">>, <<"Mozilla/5.0 (erlang-irc-bot)">>}],
     Options = [{recv_timeout, 5000}, {follow_redirect, true}],
-    {ok, StatusCode, _RespHeaders, Client} = hackney:request(get, Url, Headers, <<>>, Options),
-    {ok, Body, Client1} = hackney:body(?MAXBODY, Client),
+    {ok, StatusCode, _RespHeaders, Ref} = hackney:request(get, Url, Headers, <<>>, Options),
+    {ok, Body} = hackney:body(Ref, ?MAXBODY),
     case StatusCode of
         200 ->
             {Json} = ejson:decode(Body),
@@ -60,4 +60,4 @@ fetcher(Url, Callback) ->
             N = list_to_binary(integer_to_list(StatusCode)),
             Callback(<<"{error ", N/binary, "}">>)
     end,
-    hackney:close(Client1).
+    hackney:close(Ref).

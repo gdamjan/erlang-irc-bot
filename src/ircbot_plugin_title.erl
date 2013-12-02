@@ -72,20 +72,20 @@ fetcher(Url, Callback) ->
     Url1 = sanitize_url(Url),
     Headers = [{<<"User-Agent">>, <<"Mozilla/5.0 (erlang-irc-bot)">>}],
     Options = [{recv_timeout, 5000}, {follow_redirect, true}],
-    {ok, StatusCode, RespHeaders, Client} = hackney:request(get, Url1, Headers, <<>>, Options),
+    {ok, StatusCode, RespHeaders, Ref} = hackney:request(get, Url1, Headers, <<>>, Options),
     case StatusCode of
         200 ->
             <<"text/", _/binary>> = hackney_headers:get_value(<<"content-type">>, hackney_headers:new(RespHeaders)),
-            {ok, Body, Client1} = hackney:body(?MAXBODY, Client),
+            {ok, Body} = hackney:body(Ref, ?MAXBODY),
             Tree = mochiweb_html:parse(Body),
             [{_, _, Title}|_] = mochiweb_xpath:execute("//title",Tree),
             Title1 = re:replace(Title, "\\s+", " ", [global]),
             Callback(Title1),
-            hackney:close(Client1);
+            hackney:close(Ref);
         _ ->
             N = list_to_binary(integer_to_list(StatusCode)),
             Callback(<<"{error ", N/binary, "}">>),
-            hackney:close(Client)
+            hackney:close(Ref)
     end.
 
 

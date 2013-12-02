@@ -36,15 +36,15 @@ gfl(Query, Callback) ->
     Url = <<"http://www.google.com/search?btnI=I%27m+Feeling+Lucky&q=", Q/binary>>,
     Headers = [{<<"User-Agent">>, <<"Mozilla/5.0 (erlang-irc-bot)">>}],
     Options = [{recv_timeout, 5000}],
-    {ok, StatusCode, RespHeaders, Client} = hackney:request(get, Url, Headers, <<>>, Options),
+    {ok, StatusCode, RespHeaders, Ref} = hackney:request(get, Url, Headers, <<>>, Options),
     case StatusCode of
         302 ->
             LuckyResult =  hackney_headers:get_value(<<"location">>, hackney_headers:new(RespHeaders)),
             Callback(LuckyResult),
-            hackney:close(Client);
+            hackney:close(Ref);
         200 ->
             Callback(["No match, see: ", Url]),
-            hackney:close(Client);
+            hackney:close(Ref);
         _ ->
             ok
     end.
