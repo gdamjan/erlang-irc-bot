@@ -1,7 +1,16 @@
-{nickname, "erlbot_test"}.
-{server,   {"chat.freenode.net", 6667}}.
-{channels, ["#erlbot_test"]}.
-{plugins, [
-  {'ircbot_plugin_uptime', []},
-  {'ircbot_plugin_rps', []}
+{connection, [
+    {name, {local, freenode}},
+    {nickname, "erlbot-test"},
+    {server,   {"chat.freenode.net", 6667}},
+    {channels, [
+        "#erlbot-test"
+    ]},
+    {plugins, [
+        {'ircbot_plugin_uptime', []},
+        {'ircbot_plugin_nickserv', ["<nickserv password>"]},
+        {'ircbot_plugin_viewer', []},
+        {'ircbot_plugin_autojoin', []},
+        {'ircbot_plugin_ping', []},
+        {'ircbot_plugin_help', []},
+    ]}
 ]}.
