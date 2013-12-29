@@ -1,19 +1,3 @@
-=================================
-THIS IS THE SKOPJE-HACKLAB BRANCH
-=================================
-
-This is the branch deployed as `erlobt--` on freenode and connected to several
-channels such as #lugola.
-
-The master branch has more generic code.
-
-To compile use rebar:
-
-    rebar get-deps
-    rebar compile
-
-
-
 An extensible ircbot written in Erlang
 ======================================
 
