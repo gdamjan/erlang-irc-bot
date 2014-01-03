@@ -35,13 +35,13 @@ decode(Bin) ->
     Bin1 = base64:decode(Bin),
     <<Hmac:12/binary, Secs:32/integer, Channel/binary>> = Bin1,
     Msg = <<Secs:32/integer, Channel/binary>>,
-    Hmac = crypto:sha_mac_96(?SECRET_KEY, Msg),
+    Hmac = crypto:hmac(sha, ?SECRET_KEY, Msg),
     {Channel, Secs}.
 
 
 encode(Channel, Secs) ->
     Msg = <<Secs:32/integer, Channel/binary>>,
-    Hmac = crypto:sha_mac_96(?SECRET_KEY, Msg),
+    Hmac = crypto:hmac(sha, ?SECRET_KEY, Msg),
     base64:encode(<<Hmac/binary, Msg/binary>>).
 
 
