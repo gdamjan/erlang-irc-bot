@@ -31,7 +31,7 @@ First, compile everything:
     rebar get-deps
     rebar compile
 
-Second, edit and rename the settings.cfg.sample file (to settings.cfg). Then start
+Second, edit and rename the `settings.cfg.example` file to `settings.cfg`. Then start
 an Erlang REPL shell. Make sure the module path is set to the ./ebin/
 directory, where all the compiled .beam files are:
 
