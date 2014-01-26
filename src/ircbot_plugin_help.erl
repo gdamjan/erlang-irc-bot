@@ -7,20 +7,20 @@
 -define(HELP, "help is at http://github.com/gdamjan/erlang-irc-bot/wiki/HelpOnUsage").
 
 
-init(_Args) ->
-    {ok, []}.
+init([Url]) ->
+    {ok, Url}.
 
-handle_event(Ev, State) ->
+handle_event(Ev, Url) ->
     case Ev of
         {in, Ref, [Sender, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, Msg]} ->
             case re:run(Msg, "!help", [{capture, none}]) of
                 match ->
-                    Ref:privmsg(<<"#",Channel/binary>>, [Sender, ": ", ?HELP]);
+                    Ref:privmsg(<<"#",Channel/binary>>, [Sender, ": help is at ", Url]);
                 _ -> ok
             end;
         _ -> ok
     end,
-    {ok, State}.
+    {ok, Url}.
 
 handle_call(_Request, State) -> {ok, ok, State}.
 handle_info(_Info, State) -> {ok, State}.
