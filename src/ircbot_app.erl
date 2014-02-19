@@ -11,7 +11,7 @@
 -export([start/0]).
 
 -define(SUPERVISOR, ?MODULE).
--define(CHILD(I), {I, {I, start_link, []}, temporary, 5000, worker, [I]}).
+-define(CHILD(I), {I, {I, start_link, []}, permanent, 5000, worker, [I]}).
 
 start() ->
     application:start(sasl),
