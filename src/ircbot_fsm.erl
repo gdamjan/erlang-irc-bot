@@ -184,10 +184,6 @@ ready({received, Msg}, StateData) ->
     ircbot_plugins:notify(Plugins, {in, Self, IrcMessage}), % notify all plugins
     {next_state, ready, StateData};
 
-ready(exit, StateData) ->
-    gen_fsm:send_event_after(0, {reconnect, fast}),
-    io:format("connection died: ready -> standby~n"),
-    {next_state, standby, StateData};
 
 ready(_Ev, StateData) ->
     {next_state, ready, StateData}.
@@ -195,11 +191,16 @@ ready(_Ev, StateData) ->
 
 %% handle the death of the connection process
 handle_info({'EXIT', Pid, _Reason}, StateName, #state{connection=Pid}=StateData) ->
-    % log Pid and Reason?
-    io:format("Pid: ~p EXITed in state: ~p~n", [Pid, StateName]),
-    gen_fsm:send_event_after(0, exit),
+    gen_fsm:send_event_after(0, {reconnect, fast}),
+    io:format("connection died: ~p -> standby~n", [StateName]),
     NewStateData = StateData#state{connection=undefined},
-    {next_state, StateName, NewStateData};
+    {next_state, standby, NewStateData};
+
+handle_info({'EXIT', Pid, Reason}, StateName, StateData) ->
+    % log Pid and Reason?
+    io:format("Pid: ~p EXITed in state: ~p for reason: ~p~n", [Pid, StateName, Reason]),
+    {next_state, StateName, StateData}; %% or die?
+
 
 handle_info(Info, StateName, StateData) ->
     %%% if StateName is connecting or registering should return a timeout
