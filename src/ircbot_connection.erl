@@ -16,13 +16,12 @@ connect(Parent, Host, Port) ->
 connect(Parent, Host, Port, Ssl) ->
     Options = [ binary, {active, true}, {packet, line}, {keepalive, true},
                 {send_timeout, ?SEND_TIMEOUT}],
-    open_stdout(),
-    case Ssl of
+    SocketType = case Ssl of
         true ->
             ssl:start(),
-            SocketType = ssl;
+            ssl;
         false ->
-            SocketType = gen_tcp
+            gen_tcp
     end,
     case SocketType:connect(Host, Port, Options) of
         {ok, Sock} ->
