@@ -7,5 +7,5 @@
         pong_plugin, ctcp_plugin
     ]},
     {mod, {ircbot_app, []}},
-    {applications, [kernel, stdlib, sasl]}]
+    {applications, [kernel, stdlib, sasl, lager]}]
 }.
