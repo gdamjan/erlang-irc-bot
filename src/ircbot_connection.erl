@@ -17,13 +17,13 @@ connect(Parent, Host, Port, Ssl) ->
     Options = [ binary, {active, true}, {packet, line}, {keepalive, true},
                 {send_timeout, ?SEND_TIMEOUT}],
     open_stdout(),
-    case Ssl of
-        true ->
-            ssl:start(),
-            SocketType = ssl;
-        false ->
-            SocketType = gen_tcp
-    end,
+    SocketType = case Ssl of
+                     true ->
+                         ssl:start(),
+                         ssl;
+                     false ->
+                         gen_tcp
+                 end,
     case SocketType:connect(Host, Port, Options) of
         {ok, Sock} ->
             gen_fsm:send_event(Parent, success),
