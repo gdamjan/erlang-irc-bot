@@ -11,7 +11,7 @@ start_link(Settings) ->
     gen_event:add_handler(Plugins, ircbot_plugin_ctcp, []),
     lists:foreach(
         fun ({Plugin, Args}) ->
-            gen_event:add_handler(Plugins, Plugin, Args)
+            ok = gen_event:add_handler(Plugins, Plugin, Args)
         end,
         proplists:get_value(plugins, Settings, [])
     ),
