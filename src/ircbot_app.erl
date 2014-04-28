@@ -15,6 +15,7 @@
 
 start() ->
     application:start(sasl),
+    application:start(lager),
     application:start(ircbot).
 
 

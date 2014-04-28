@@ -16,7 +16,6 @@ connect(Parent, Host, Port) ->
 connect(Parent, Host, Port, Ssl) ->
     Options = [ binary, {active, true}, {packet, line}, {keepalive, true},
                 {send_timeout, ?SEND_TIMEOUT}],
-    open_stdout(),
     case Ssl of
         true ->
             ssl:start(),
@@ -90,19 +89,7 @@ handle_error(Sock, Reason) ->
 
 %% debug helpers
 debug(in, Msg) ->
-    debug([" IN| ", Msg]);
+    lager:debug(" IN: ~s", [Msg]);
 
 debug(out, Msg) ->
-    debug(["OUT| ", Msg]).
-
-% print directly to stdout thus avoid Erlangs broken
-% io:* routines
-debug(Msg) ->
-    port_command(stdout, [Msg, "\n"]).
-
-% open stdout as an Erlang port and register it with the
-% stdout atom. The port will be closed automatically if the
-% connection process dies.
-open_stdout() ->
-    StdOut = open_port("/dev/stdout", [binary, out]),
-    register(stdout, StdOut).
+    lager:debug("OUT: ~s", [Msg]).
