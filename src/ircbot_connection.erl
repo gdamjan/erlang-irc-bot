@@ -14,9 +14,9 @@ connect(Parent, Host, Port) ->
     connect(Parent, Host, Port, false).
 
 connect(Parent, Host, Port, Ssl) ->
+    ircbot_log:init(),
     Options = [ binary, {active, true}, {packet, line}, {keepalive, true},
                 {send_timeout, ?SEND_TIMEOUT}],
-    open_stdout(),
     SocketType = case Ssl of
                      true ->
                          ssl:start(),
@@ -40,7 +40,7 @@ loop({_, Sock, SocketType} = State) ->
 
         % data to send away on the socket
         {send, Data} ->
-            debug(out, Data), % for debuging only
+            ircbot_log:debug(out, Data), % for debuging only
             ok = SocketType:send(Sock, [Data, ?CRNL]),
             loop(State);
 
@@ -78,7 +78,7 @@ code_change(State) -> loop(State).
 
 handle_recv_data({Parent, _, _} = State, Data) ->
     [Line|_Tail] = re:split(Data, ?CRNL), % strip the CRNL at the end
-    debug(in, Line),    % for debuging only
+    ircbot_log:debug(in, Line),    % for debuging only
     gen_fsm:send_event(Parent, {received, Line}),
     loop(State).
 
@@ -87,22 +87,3 @@ handle_closed(Sock) ->
 
 handle_error(Sock, Reason) ->
     error_logger:format("Socket ~w error: ~w [~w]~n", [Sock, Reason, self()]).
-
-%% debug helpers
-debug(in, Msg) ->
-    debug([" IN| ", Msg]);
-
-debug(out, Msg) ->
-    debug(["OUT| ", Msg]).
-
-% print directly to stdout thus avoid Erlangs broken
-% io:* routines
-debug(Msg) ->
-    port_command(stdout, [Msg, "\n"]).
-
-% open stdout as an Erlang port and register it with the
-% stdout atom. The port will be closed automatically if the
-% connection process dies.
-open_stdout() ->
-    StdOut = open_port("/dev/stdout", [binary, out]),
-    register(stdout, StdOut).
