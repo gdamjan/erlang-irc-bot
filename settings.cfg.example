@@ -8,7 +8,6 @@
     {plugins, [
         {'ircbot_plugin_uptime', []},
         {'ircbot_plugin_nickserv', ["<nickserv password>"]},
-        {'ircbot_plugin_viewer', []},
         {'ircbot_plugin_autojoin', []},
         {'ircbot_plugin_ping', []},
         {'ircbot_plugin_help', ["https://github.com/gdamjan/erlang-irc-bot/"]}
