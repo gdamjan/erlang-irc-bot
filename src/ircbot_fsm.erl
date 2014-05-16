@@ -164,6 +164,10 @@ registering({received, Msg}, StateData) ->
             ChangeNick = [<<"NICK ">>, Nick, ?NICK_SUFFIX],
             send(StateData#state.connection, ChangeNick),
             {next_state, registering, StateData, ?REGISTER_TIMEOUT};
+        [_, _, <<"PING">>, Ping] ->
+            Pong = [<<"PONG :", Ping/binary>>],
+            send(StateData#state.connection, Pong),
+            {next_state, registering, StateData, ?REGISTER_TIMEOUT};
         _ ->
             {next_state, registering, StateData, ?REGISTER_TIMEOUT}
     end;
