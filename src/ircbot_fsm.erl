@@ -55,7 +55,6 @@ start_link(Settings) ->
 %%% `Settings` should be a proplist ussually created from a
 %%% config file with file:consult
 init(Settings) ->
-    process_flag(trap_exit, true),
     case proplists:get_value(ssl, Settings) of
         true ->
             Ssl = true;
@@ -66,6 +65,7 @@ init(Settings) ->
     Server = proplists:get_value(server, Settings),
     {ok, Plugins} = ircbot_plugins:start_link(Settings),
     StateData = #state{nickname=Nick,server=Server,plugins=Plugins,backoff=0,ssl=Ssl},
+    gen_fsm:send_event(self(), connect),
     {ok, standby, StateData}.
 
 
@@ -193,17 +193,10 @@ ready(_Ev, StateData) ->
     {next_state, ready, StateData}.
 
 
-%% handle the death of the connection process
-handle_info({'EXIT', Pid, _Reason}, StateName, #state{connection=Pid}=StateData) ->
-    gen_fsm:send_event_after(0, {reconnect, fast}),
-    io:format("connection died: ~p -> standby~n", [StateName]),
-    NewStateData = StateData#state{connection=undefined},
-    {next_state, standby, NewStateData};
-
 handle_info({'EXIT', Pid, Reason}, StateName, StateData) ->
     % log Pid and Reason?
     io:format("Pid: ~p EXITed in state: ~p for reason: ~p~n", [Pid, StateName, Reason]),
-    {next_state, StateName, StateData}; %% or die?
+    {stop, die, StateData};
 
 
 handle_info(Info, StateName, StateData) ->
