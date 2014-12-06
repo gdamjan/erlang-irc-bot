@@ -30,7 +30,8 @@ connect(Parent, Host, Port, Ssl) ->
             loop({Parent, Sock, SocketType});
         {error, Reason} ->
             error_logger:format("gen_tcp:connect error: ~s~n", [inet:format_error(Reason)])
-    end.
+    end,
+    exit(die).
 
 
 loop({_, Sock, SocketType} = State) ->
@@ -46,10 +47,12 @@ loop({_, Sock, SocketType} = State) ->
 
         % data received
         {tcp, Sock, Data} ->
-            handle_recv_data(State, Data);
+            handle_recv_data(State, Data),
+            loop(State);
 
         {ssl, Sock, Data} ->
-            handle_recv_data(State, Data);
+            handle_recv_data(State, Data),
+            loop(State);
 
         % socket closed
         {tcp_closed, Sock} ->
@@ -79,8 +82,7 @@ code_change(State) -> loop(State).
 handle_recv_data({Parent, _, _} = State, Data) ->
     [Line|_Tail] = re:split(Data, ?CRNL), % strip the CRNL at the end
     ircbot_log:debug(in, Line),    % for debuging only
-    gen_fsm:send_event(Parent, {received, Line}),
-    loop(State).
+    gen_fsm:send_event(Parent, {received, Line}).
 
 handle_closed(Sock) ->
     error_logger:format("Socket ~w closed [~w]~n", [Sock, self()]).
