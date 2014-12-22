@@ -6,14 +6,12 @@
 -export([init/1, handle_event/2, terminate/2, handle_call/2, handle_info/2, code_change/3]).
 
 
--define(TRIGGER, <<"This nickname is registered. ",
-    "Please choose a different nickname, or identify ",
-    "via ",2,"/msg NickServ identify <password>",2,".">>).
+-define(TRIGGER, <<"This nickname is registered. ", _/binary>>).
 
 %% setup the password in your settings file
 %% {plugins, [
 %%    ...
-%%    {'plugins.nickserv', ["SECRET"]}
+%%    {ircbot_plugin_nickserv, ["SECRET"]}
 %% ]}.
 
 init(Password) ->
