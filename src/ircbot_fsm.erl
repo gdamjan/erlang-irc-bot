@@ -15,6 +15,7 @@
 -include("ircbot.hrl").
 -record(state, {
         nickname,
+        password,
         server,
         plugins,
         connection,
@@ -62,9 +63,10 @@ init(Settings) ->
             Ssl = false
     end,
     Nick = proplists:get_value(nickname, Settings),
+    Password = proplists:get_value(password, Settings),
     Server = proplists:get_value(server, Settings),
     {ok, Plugins} = ircbot_plugins:start_link(Settings),
-    StateData = #state{nickname=Nick,server=Server,plugins=Plugins,backoff=0,ssl=Ssl},
+    StateData = #state{nickname=Nick,password=Password,server=Server,plugins=Plugins,backoff=0,ssl=Ssl},
     gen_fsm:send_event(self(), connect),
     {ok, standby, StateData}.
 
@@ -77,9 +79,14 @@ send_quit(Conn) ->
     send(Conn, ["QUIT :", ?QUITMSG]),
     Conn ! quit.
 
-send_login(Conn, Nickname) ->
+send_login(Conn, Nickname, undefined) ->
     send(Conn, ["NICK ", Nickname]),
-    send(Conn, ["USER ", Nickname, " 8 * :", ?REALNAME]).
+    send(Conn, ["USER ", Nickname, " 8 * :", ?REALNAME]);
+
+send_login(Conn, Nickname, Password) ->
+    send(Conn, ["NICK ", Nickname]),
+    send(Conn, ["USER ", Nickname, " 8 * :", ?REALNAME]),
+    send(Conn, ["PASS ", Password]).
 
 %%%
 %%% gen_fsm states
@@ -129,7 +136,8 @@ connecting(exit, StateData) ->
 connecting(success, StateData) ->
     Pid = StateData#state.connection,
     Nick = StateData#state.nickname,
-    send_login(Pid, Nick),
+    Password = StateData#state.password,
+    send_login(Pid, Nick, Password),
     NewStateData = StateData#state{backoff=0},
     io:format("success in connecting -> registering~n"),
     {next_state, registering, NewStateData, ?REGISTER_TIMEOUT};
