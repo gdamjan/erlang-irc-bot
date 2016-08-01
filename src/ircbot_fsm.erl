@@ -84,9 +84,9 @@ send_login(Conn, Nickname, undefined) ->
     send(Conn, ["USER ", Nickname, " 8 * :", ?REALNAME]);
 
 send_login(Conn, Nickname, Password) ->
+    send(Conn, ["PASS ", Password]),
     send(Conn, ["NICK ", Nickname]),
-    send(Conn, ["USER ", Nickname, " 8 * :", ?REALNAME]),
-    send(Conn, ["PASS ", Password]).
+    send(Conn, ["USER ", Nickname, " 8 * :", ?REALNAME]).
 
 %%%
 %%% gen_fsm states
