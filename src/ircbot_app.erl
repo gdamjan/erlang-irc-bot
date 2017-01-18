@@ -11,7 +11,7 @@
 
 start() ->
     application:start(sasl),
-    application:start(ircbot).
+    application:start(ircbot, transient).
 
 
 %% app behaviour
