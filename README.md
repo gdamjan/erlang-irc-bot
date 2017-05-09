@@ -15,6 +15,8 @@ useful. It still needs improvements and is work in progress, but plug-ins can
 be written for anything.
 
 
+Test promena
+
 Patches, help and feature requests can be sent on the github issue tracker.
 There's a TODO list I keep there too.
 
