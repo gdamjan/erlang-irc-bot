@@ -3,3 +3,4 @@ settings.cfg
 ebin/
 deps/
 .dialyzer_plt
+_build/
