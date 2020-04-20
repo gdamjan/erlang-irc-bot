@@ -1,4 +1,4 @@
--module(ircbot_log).
+-module(ircbot_simple_log).
 -author("gdamjan@gmail.com").
 
 -export([init/0, init/1, debug/1, debug/2]).

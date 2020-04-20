@@ -14,7 +14,7 @@ connect(Parent, Host, Port) ->
     connect(Parent, Host, Port, false).
 
 connect(Parent, Host, Port, Ssl) ->
-    ircbot_log:init(),
+    ircbot_simple_log:init(),
     Options = [ binary, {active, true}, {packet, line}, {keepalive, true},
                 {send_timeout, ?SEND_TIMEOUT}],
     SocketType = case Ssl of
@@ -41,7 +41,7 @@ loop({_, Sock, SocketType} = State) ->
 
         % data to send away on the socket
         {send, Data} ->
-            ircbot_log:debug(out, Data), % for debuging only
+            ircbot_simple_log:debug(out, Data), % for debuging only
             ok = SocketType:send(Sock, [Data, ?CRNL]),
             loop(State);
 
@@ -81,7 +81,7 @@ code_change(State) -> loop(State).
 
 handle_recv_data({Parent, _, _}, Data) ->
     [Line|_Tail] = re:split(Data, ?CRNL), % strip the CRNL at the end
-    ircbot_log:debug(in, Line),    % for debuging only
+    ircbot_simple_log:debug(in, Line),    % for debuging only
     gen_fsm:send_event(Parent, {received, Line}).
 
 handle_closed(Sock) ->
