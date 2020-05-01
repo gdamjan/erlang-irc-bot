@@ -1,3 +1,5 @@
+%%-*- mode: erlang -*-
+
 {connection, [
     {name, {local, freenode}},
     {nickname, "erlbot-test"},
