@@ -28,14 +28,13 @@ Quick start
 
 First, compile everything:
 
-    rebar get-deps
-    rebar compile
+    make
 
 Second, edit and rename the `settings.cfg.example` file to `settings.cfg`. Then start
 an Erlang REPL shell. Make sure the module path is set to the ./ebin/
 directory, where all the compiled .beam files are:
 
-    ERL_LIBS=.:./deps erl
+    ERL_LIBS=. erl
 
 
 Once in the Erlang REPL you can start the bot with:
@@ -50,13 +49,13 @@ Just hit "rebar compile" in another terminal and then, if everything is ok, in t
 
     l('ircbot_plugin_rps').
 
-to reload the 'ircbot_plugin_rps' rock-paper-scissors module.
+to reload the `'ircbot_plugin_rps'` rock-paper-scissors module.
 
 or
 
     l(ircbot_fsm).
 
-to reload the 'ircbot_fsm' module.
+to reload the `'ircbot_fsm'` module.
 
 
 Erlangs [code switching][code switching] and the gen_fsm/gen_event frameworks

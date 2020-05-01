@@ -5,7 +5,7 @@
 SRCDIR  := src
 OBJDIR  := ebin
 
-ERLC    := erlc $(ERLC_FLAGS)
+ERLC    := erlc +tuple_calls $(ERLC_FLAGS)
 
 # GNU Make Recursive Wildcard Function
 rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
