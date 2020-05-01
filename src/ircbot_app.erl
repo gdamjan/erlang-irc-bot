@@ -25,10 +25,19 @@ start(_Type, _StartArgs) ->
 stop(_State) ->
     exit(whereis(?SUPERVISOR), shutdown).
 
+get_connections_args(Settings) ->
+    lists:filtermap(
+        fun(El) ->
+            case El of
+                {connection, Args} -> {true, Args};
+                _ -> false
+            end
+    end, Settings).
+
 start_all(Supervisor, Settings) ->
     lists:foreach(
-        fun ({connection, Args}) ->
-                {ok, _Child} = supervisor:start_child(Supervisor, [Args])
+        fun (Args) ->
+            {ok, _Child} = supervisor:start_child(Supervisor, [Args])
         end,
-        Settings
+        get_connections_args(Settings)
     ).
