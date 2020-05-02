@@ -24,7 +24,7 @@ connect(Parent, Host, Port, Ssl) ->
                  end,
     case SocketType:connect(Host, Port, Options) of
         {ok, Sock} ->
-            gen_fsm:send_event(Parent, success),
+            gen_statem:cast(Parent, connected),
             loop({Parent, Sock, SocketType});
         {error, Reason} ->
             error_logger:format("gen_tcp:connect error: ~s~n", [inet:format_error(Reason)])
@@ -78,8 +78,7 @@ loop({_, Sock, SocketType} = State) ->
 handle_recv_data({Parent, _, _}, LineIn) ->
     Line = string:chomp(LineIn),
     logger:debug(" IN| ~ts", [Line]),
-    gen_fsm:send_event(Parent, {received, Line}).
-
+    gen_statem:cast(Parent, {received, Line}).
 
 handle_closed(Sock) ->
     error_logger:format("Socket ~w closed [~w]~n", [Sock, self()]).

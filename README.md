@@ -36,15 +36,16 @@ Second, edit and rename the `settings.cfg.example` file to `settings.cfg`. Then 
 an Erlang REPL shell:
 
 ```
-rebar3 shell --start-clean
+rebar3 shell
 ```
 
 Once in the Erlang REPL you can start the bot with:
 
 ```
 {ok, [{ connection, Settings }]} = file:consult("settings.cfg").
-{ok, IrcBot} = ircbot_fsm:start(Settings).
-gen_fsm:sync_send_all_state_event(IrcBot, {add_plugin, ircbot_plugin_uptime, []}).
+{ok, IrcBot} = ircbot_statem:start(Settings).
+gen_statem:cast(IrcBot, connect).
+gen_statem:sync_send_all_state_event(IrcBot, {add_plugin, ircbot_plugin_uptime, []}).
 ```
 
 You can make changes to the source code & plugins while the bot is running.
@@ -56,12 +57,12 @@ to reload the `ircbot_plugin_uptime` uptime module.
 
 or
 ```
-l(ircbot_fsm).
+l(ircbot_statem).
 ```
-to reload the `ircbot_fsm` module.
+to reload the `ircbot_statem` module.
 
 
-Erlangs [code switching][code switching] and the gen_fsm/gen_event frameworks
+Erlangs [code switching][code switching] and the gen_statem/gen_event frameworks
 will handle all the details to run the new code without even disconnecting.
 
 [code switching]: http://en.wikipedia.org/wiki/Erlang_%28programming_language%29#Hot_code_loading_and_modules

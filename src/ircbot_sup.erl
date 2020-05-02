@@ -1,5 +1,5 @@
 -module(ircbot_sup).
--author('gdamjan@gmail.com').
+-author("gdamjan@gmail.com").
 
 -behaviour(supervisor).
 -export([init/1]).
@@ -10,5 +10,5 @@
 init([]) ->
     {ok, {
         {simple_one_for_one, 10, 60},
-        [?CHILD(ircbot_fsm)]
+        [?CHILD(ircbot_statem)]
     }}.

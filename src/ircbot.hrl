@@ -11,8 +11,8 @@
 -define(CONNECT_TIMEOUT,   5 * ?SECOND).  % wait for dns
 -define(REGISTER_TIMEOUT, 30 * ?SECOND).  % wait for register on irc
 -define(RECONNECT_DELAY,  15 * ?SECOND).  % fast reconnect
--define(BACKOFF_DELAY,    15 * ?SECOND).  % backoff reconnect 15s base,
-                                          % delay of 0, 5, 20, 45, 80, 125
+-define(BACKOFF_DELAY,    ?SECOND).       % backoff reconnect 1s base,
+                                          % delay of 0, 1, 4, 9, …
 
 -define(NICK_SUFFIX, <<"_">>).         % append suffix to nickname if nick is in use
 -define(CRNL, "\r\n").

@@ -1,5 +1,5 @@
 -module(ircbot_app).
--author('gdamjan@gmail.com').
+-author("gdamjan@gmail.com").
 
 -behaviour(application).
 -export([start/2, stop/1]).
