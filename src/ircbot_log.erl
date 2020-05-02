@@ -7,10 +7,6 @@
 %% Stupid and simple module that logs to stdout. The stdout port thing is needed so we can write Erlang binaries,
 %% no mather if they are utf, latin1 or something else. Seems no other function could do that in Erlang :(
 %%
-%% But, you can override* this module in your own project (that uses ircbot as a library/dependency).
-%% *override = create a module in your project with the same name as this, and make sure your project is
-%% before the dependecies in the ERL_LIBS path. Ex. ERL_LIBS=$PWD:$PWD/deps
-%%
 
 init() ->
     init([]).
