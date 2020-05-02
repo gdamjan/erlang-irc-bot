@@ -2,10 +2,10 @@
     {description, "ircbot"},
     {vsn, "0.01"},
     {modules, [
-        ircbot_app, ircbot_sup, ircbot_fsm, ircbot_api,
+        ircbot_app, ircbot_sup, ircbot_statem, ircbot_api,
         ircbot_lib, ircbot_plugins,
         pong_plugin, ctcp_plugin
     ]},
     {mod, {ircbot_app, []}},
-    {applications, [kernel, stdlib, sasl]}]
+    {applications, [kernel, stdlib, sasl, crypto]}]
 }.

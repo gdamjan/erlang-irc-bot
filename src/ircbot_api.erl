@@ -13,10 +13,10 @@ pid({?MODULE, IrcbotRef}) ->
     IrcbotRef.
 
 connect({?MODULE, IrcbotRef}) ->
-    gen_fsm:send_event(IrcbotRef, connect).
+    gen_statem:cast(IrcbotRef, connect).
 
 disconnect({?MODULE, IrcbotRef}) ->
-    gen_fsm:sync_send_all_state_event(IrcbotRef, disconnect).
+    gen_statem:cast(IrcbotRef, disconnect).
 
 reconnect({?MODULE, IrcbotRef}) ->
     disconnect({?MODULE, IrcbotRef}),
@@ -24,17 +24,17 @@ reconnect({?MODULE, IrcbotRef}) ->
 
 
 add_plugin(Plugin, Args, {?MODULE, IrcbotRef}) ->
-    gen_fsm:sync_send_all_state_event(IrcbotRef, {add_plugin, Plugin, Args}).
+    gen_statem:call(IrcbotRef, {add_plugin, Plugin, Args}).
 
 delete_plugin(Plugin, Args, {?MODULE, IrcbotRef}) ->
-    gen_fsm:sync_send_all_state_event(IrcbotRef, {delete_plugin, Plugin, Args}).
+    gen_statem:call(IrcbotRef, {delete_plugin, Plugin, Args}).
 
 which_plugins({?MODULE, IrcbotRef}) ->
-    gen_fsm:sync_send_all_state_event(IrcbotRef, which_plugins).
+    gen_statem:call(IrcbotRef, which_plugins).
 
 
 send_event(Event, {?MODULE, IrcbotRef}) ->
-    gen_fsm:send_event(IrcbotRef, Event).
+    gen_statem:cast(IrcbotRef, Event).
 
 send_data(Data, {?MODULE, IrcbotRef}) ->
     send_event({send, Data}, {?MODULE, IrcbotRef}).

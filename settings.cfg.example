@@ -4,6 +4,8 @@
     {name, {local, freenode}},
     {nickname, "erlbot-test"},
     {server,   {"chat.freenode.net", 6667}},
+    % {server,   {"chat.freenode.net", 7070}, ssl},
+    % {autoconnect, true},
     {channels, [
         "#erlbot-test"
     ]},
