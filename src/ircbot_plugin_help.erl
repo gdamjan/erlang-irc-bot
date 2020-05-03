@@ -15,7 +15,7 @@ handle_event(Ev, Url) ->
         {in, Ref, [Sender, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, Msg]} ->
             case re:run(Msg, "!help", [{capture, none}]) of
                 match ->
-                    Ref:privmsg(<<"#",Channel/binary>>, [Sender, ": help is at ", Url]);
+                    ircbot_api:privmsg(<<"#",Channel/binary>>, [Sender, ": help is at ", Url], Ref);
                 _ -> ok
             end;
         _ -> ok
