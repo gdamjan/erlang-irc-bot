@@ -106,9 +106,8 @@ registering(EventType, EventContent, Data) ->
 %%% Ready state - it's connected and registered - normal operation
 ready(enter, _PrevState, Data) ->
     #{plugins:=Plugins, welcome:=Msg} = Data,
-    Self = ircbot_api:new(self()),
-    ircbot_plugins:notify(Plugins, {Self, online}),
-    ircbot_plugins:notify(Plugins, {in, Self, Msg}),
+    ircbot_plugins:notify(Plugins, {self(), online}),
+    ircbot_plugins:notify(Plugins, {in, self(), Msg}),
     keep_state_and_data;
 
 ready(cast, {send, Msg}, Data) ->
@@ -119,8 +118,7 @@ ready(cast, {send, Msg}, Data) ->
 ready(cast, {received, Msg}, Data) ->
     {match, IrcMessage} = ircbot_lib:irc_parse(Msg),
     #{plugins:=Plugins} = Data,
-    Self = ircbot_api:new(self()),
-    ircbot_plugins:notify(Plugins, {in, Self, IrcMessage}), % notify all plugins
+    ircbot_plugins:notify(Plugins, {in, self(), IrcMessage}), % notify all plugins
     keep_state_and_data;
 
 ready(cast, disconnect, Data) ->

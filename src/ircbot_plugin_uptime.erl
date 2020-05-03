@@ -21,7 +21,7 @@ memory() ->
 handle_event(Msg, State) ->
     case Msg of
         {in, Ref, [_Sender, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!uptime">>]} ->
-            Ref:privmsg(<<"#",Channel/binary>>, [uptime(), " | ", memory()]),
+            ircbot_api:privmsg(<<"#",Channel/binary>>, [uptime(), " | ", memory()], Ref),
             {ok, State};
         _ ->
             {ok, State}

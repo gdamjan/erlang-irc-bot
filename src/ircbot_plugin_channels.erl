@@ -15,7 +15,7 @@ handle_event(Msg, Channels) ->
         {in, Ref, [_, _, <<"001">>, _Nick, _]} ->
         %% join the channels on connect
             lists:foreach(
-                fun (Ch) -> Ref:join(Ch) end,
+                fun (Ch) -> ircbot_api:join(Ch, Ref) end,
                 sets:to_list(Channels)
             ),
             {ok, Channels};

@@ -14,12 +14,13 @@ handle_event(Msg, State) ->
         {in, Ref, [Nick, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, Text]} ->
             case re:run(Text, "не работи", [unicode, caseless]) of
                 {match, _} ->
-                    Ref:privmsg(<<"#",Channel/binary>>, [Nick, ":",
+                    ircbot_api:privmsg(<<"#",Channel/binary>>, [Nick, ":",
                            " Look buddy, doesn't work is a strong statement.",
                            " Does it sit on the couch all day? Does it want more",
                            " money? Is it on IRC all the time? Be specific!",
                            " Examples of what doesn't work (or the URL) tend to",
-                           " help too, or pastebin the config if that's the problem"]),
+                           " help too, or pastebin the config if that's the problem"],
+                        Ref),
                     {ok, State};
                 _ ->
                     {ok, State}
