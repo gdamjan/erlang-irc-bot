@@ -6,7 +6,7 @@
 
 
 init(_Args) ->
-    SECRET_KEY = crypto:strong_rand_bytes(10),
+    SECRET_KEY = crypto:strong_rand_bytes(32),
     {ok, SECRET_KEY}.
 
 handle_event(Msg, SECRET_KEY) ->
@@ -32,13 +32,13 @@ decode(Bin, SECRET_KEY) ->
     Bin1 = base64:decode(Bin),
     <<Hmac:20/binary, Secs:32/integer, Channel/binary>> = Bin1,
     Msg = <<Secs:32/integer, Channel/binary>>,
-    Hmac = crypto:hmac(sha, SECRET_KEY, Msg),
+    Hmac = crypto:mac(poly1305, SECRET_KEY, Msg),
     {Channel, Secs}.
 
 
 encode(Channel, Secs, SECRET_KEY) ->
     Msg = <<Secs:32/integer, Channel/binary>>,
-    Hmac = crypto:hmac(sha, SECRET_KEY, Msg),
+    Hmac = crypto:mac(poly1305, SECRET_KEY, Msg),
     base64:encode(<<Hmac/binary, Msg/binary>>).
 
 
