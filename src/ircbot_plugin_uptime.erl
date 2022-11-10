@@ -9,19 +9,41 @@
 init(_Args) ->
     {ok, []}.
 
+iff0(N, Suffix) ->
+    iff0(N, <<"">>, Suffix).
+
+iff0(N, Prefix, Suffix) ->
+    Nb = integer_to_binary(N),
+    case N > 0 of
+        true -> <<Prefix/binary, Nb/binary, Suffix/binary>>;
+        false -> <<"">>
+    end.
+
 uptime() ->
     {UpTime, _ } = erlang:statistics(wall_clock),
     {D, {H, M, S}} = calendar:seconds_to_daystime(UpTime div 1000),
-    lists:flatten(io_lib:format("~p days, ~p hours, ~p minutes and ~p seconds", [D,H,M,S])).
+    Days = iff0(D, <<" days, ">>),
+    Hours = iff0(H, <<" hours, ">>),
+    Minutes = iff0(M, <<" minutes">>),
+    Seconds = iff0(S, <<" and ">>, <<" seconds">>),
+    <<Days/binary, Hours/binary, Minutes/binary, Seconds/binary>>.
 
 memory() ->
-    M = proplists:get_value(total, erlang:memory()),
-    lists:flatten(io_lib:format("memory: ~p kb", [M / 1000])).
+    M = erlang:memory(total) / 1000 / 1000, % in MB
+    Mb = float_to_binary(M, [{decimals, 2}]),
+    <<"memory: ", Mb/binary, " MB">>.
+
+response() ->
+    lists:join(" | ", [
+        uptime(),
+        memory(),
+        string:chomp(erlang:system_info(system_version))
+    ]).
 
 handle_event(Msg, State) ->
     case Msg of
         {in, Ref, [_Sender, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!uptime">>]} ->
-            Ref:privmsg(<<"#",Channel/binary>>, [uptime(), " | ", memory()]),
+            Ref:privmsg(<<"#",Channel/binary>>, response()),
             {ok, State};
         _ ->
             {ok, State}
