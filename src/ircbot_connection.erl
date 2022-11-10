@@ -45,13 +45,13 @@ loop({_, Sock, SocketType} = State) ->
             ok = SocketType:send(Sock, [Data, ?CRNL]),
             loop(State);
 
-        % data received
-        {tcp, Sock, Data} ->
-            handle_recv_data(State, Data),
+        % data received - packet line makes sure it's a single line
+        {tcp, Sock, Line} ->
+            handle_recv_data(State, Line),
             loop(State);
 
-        {ssl, Sock, Data} ->
-            handle_recv_data(State, Data),
+        {ssl, Sock, Line} ->
+            handle_recv_data(State, Line),
             loop(State);
 
         % socket closed
@@ -77,15 +77,16 @@ loop({_, Sock, SocketType} = State) ->
             SocketType:close(Sock)
     end.
 
-code_change(State) -> loop(State).
-
-handle_recv_data({Parent, _, _}, Data) ->
-    [Line|_Tail] = re:split(Data, ?CRNL), % strip the CRNL at the end
+handle_recv_data({Parent, _, _}, LineIn) ->
+    Line = string:chomp(LineIn),
     ircbot_log:debug(in, Line),    % for debuging only
     gen_fsm:send_event(Parent, {received, Line}).
+
 
 handle_closed(Sock) ->
     error_logger:format("Socket ~w closed [~w]~n", [Sock, self()]).
 
 handle_error(Sock, Reason) ->
     error_logger:format("Socket ~w error: ~w [~w]~n", [Sock, Reason, self()]).
+
+code_change(State) -> loop(State).
