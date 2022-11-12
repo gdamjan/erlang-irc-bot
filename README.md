@@ -28,34 +28,37 @@ Quick start
 
 First, compile everything:
 
-    make
+```
+rebar3 compile
+```
 
 Second, edit and rename the `settings.cfg.example` file to `settings.cfg`. Then start
-an Erlang REPL shell. Make sure the module path is set to the ./ebin/
-directory, where all the compiled .beam files are:
+an Erlang REPL shell:
 
-    ERL_LIBS=. erl
-
+```
+rebar3 shell --start-clean
+```
 
 Once in the Erlang REPL you can start the bot with:
 
-    {ok, Settings} = file:consult("settings.cfg").
-    {ok, IrcBot} = ircbot_fsm:start(Settings).
-    gen_fsm:send_event(IrcBot, connect).
-    gen_fsm:sync_send_all_state_event(IrcBot, {add_plugin, 'ircbot_plugin_rps', []}).
+```
+{ok, [{ connection, Settings }]} = file:consult("settings.cfg").
+{ok, IrcBot} = ircbot_fsm:start(Settings).
+gen_fsm:sync_send_all_state_event(IrcBot, {add_plugin, ircbot_plugin_uptime, []}).
+```
 
 You can make changes to the source code & plugins while the bot is running.
-Just hit "rebar compile" in another terminal and then, if everything is ok, in the Erlang REPL run:
-
-    l('ircbot_plugin_rps').
-
-to reload the `'ircbot_plugin_rps'` rock-paper-scissors module.
+Just hit "rebar3 compile" in another terminal and then, if everything is ok, in the Erlang REPL run:
+```
+l(ircbot_plugin_uptime).
+```
+to reload the `ircbot_plugin_uptime` uptime module.
 
 or
-
-    l(ircbot_fsm).
-
-to reload the `'ircbot_fsm'` module.
+```
+l(ircbot_fsm).
+```
+to reload the `ircbot_fsm` module.
 
 
 Erlangs [code switching][code switching] and the gen_fsm/gen_event frameworks
@@ -64,44 +67,11 @@ will handle all the details to run the new code without even disconnecting.
 [code switching]: http://en.wikipedia.org/wiki/Erlang_%28programming_language%29#Hot_code_loading_and_modules
 
 
-Parametrized Module API
------------------------
-
-Using the parametrized module support in Erlang we can do something like this
-too:
-
-    {ok, Settings} = file:consult("settings.cfg").
-    IrcBot = ircbot_fsm:new(Settings).
-    IrcBot:connect().
-    IrcBot:add_plugin(ircbot_plugin_rps, []).
-
-
-The parametrized module feature is officially supported since Erlang R14, so
-now I consider this the official API of the bot.
-
-
 Real OTP Application
 --------------------
 
-To start it:
+```
+rebar3 as prod release
+```
 
-    erl -sname ircbot@localhost -setcookie xxx -pa ebin/ \
-        -sasl errlog_type error -s ircbot_app -conf settings-app.cfg
-
-To connect a remote shell to it:
-
-    erl -sname ctrl -remsh ircbot@localhost -setcookie xxx
-
-
-Similar projects
-________________
-
-* http://github.com/wrboyce/erb
-* http://manderlbot.org/
-* http://erlirc.com/
-* http://github.com/jimm/erlang-ircbot
-* https://bitbucket.org/john_b/erlang-ircbot
-* http://github.com/pizza/abbot
-* http://code.google.com/p/madcow/
-* http://www.otfbot.org/
-* https://github.com/mazenharake/eirc/
+An Erlang release will be in `_build/prod/rel/ircbot/`, an alternative is to get a tarball with `rebar3 as prod tar`.
