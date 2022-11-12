@@ -15,3 +15,4 @@
                                           % delay of 0, 5, 20, 45, 80, 125
 
 -define(NICK_SUFFIX, <<"_">>).         % append suffix to nickname if nick is in use
+-define(CRNL, "\r\n").

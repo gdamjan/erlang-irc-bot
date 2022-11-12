@@ -2,7 +2,6 @@
 -author("gdamjan@gmail.com").
 
 -include("ircbot.hrl").
--define(CRNL, "\r\n").
 
 -export([start_link/4, code_change/1, connect/3, connect/4]).
 
