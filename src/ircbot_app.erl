@@ -6,14 +6,6 @@
 
 -define(SUPERVISOR, ircbot_sup).
 
-%% API
--export([start/0]).
-
-start() ->
-    application:start(sasl),
-    application:start(ircbot, transient).
-
-
 %% app behaviour
 start(_Type, _StartArgs) ->
     {ok, Sup} = supervisor:start_link({local, ?SUPERVISOR}, ?SUPERVISOR, []),
