@@ -13,7 +13,6 @@ connect(Parent, Host, Port) ->
     connect(Parent, Host, Port, false).
 
 connect(Parent, Host, Port, Ssl) ->
-    ircbot_log:init(),
     Options = [ binary, {active, true}, {packet, line}, {keepalive, true},
                 {send_timeout, ?SEND_TIMEOUT}],
     SocketType = case Ssl of
@@ -40,7 +39,7 @@ loop({_, Sock, SocketType} = State) ->
 
         % data to send away on the socket
         {send, Data} ->
-            ircbot_log:debug(out, Data), % for debuging only
+            logger:debug("OUT| ~ts", [Data]),
             ok = SocketType:send(Sock, [Data, ?CRNL]),
             loop(State);
 
@@ -78,7 +77,7 @@ loop({_, Sock, SocketType} = State) ->
 
 handle_recv_data({Parent, _, _}, LineIn) ->
     Line = string:chomp(LineIn),
-    ircbot_log:debug(in, Line),    % for debuging only
+    logger:debug(" IN| ~ts", [Line]),
     gen_fsm:send_event(Parent, {received, Line}).
 
 
