@@ -1,15 +1,14 @@
 %%-*- mode: erlang -*-
 
 {connection, [
-    {name, {local, freenode}},
+    {name, {local, libera}},
     {nickname, "erlbot-test"},
-    {server,   {"chat.freenode.net", 6667}},
+    {server,   {"irc.libera.chat", 6667}},
     {channels, [
-        "#erlbot-test"
+        "##ircbot-test"
     ]},
     {plugins, [
         {'ircbot_plugin_uptime', []},
-        {'ircbot_plugin_nickserv', ["<nickserv password>"]},
         {'ircbot_plugin_autojoin', []},
         {'ircbot_plugin_ping', []},
         {'ircbot_plugin_help', ["https://github.com/gdamjan/erlang-irc-bot/"]}
