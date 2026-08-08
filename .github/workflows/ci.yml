@@ -13,7 +13,7 @@ jobs:
       image: erlang:${{ matrix.erlang }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
     - name: Compile
       run: rebar3 compile
     - name: Run tests
@@ -22,4 +22,4 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        erlang: [23, 24, 25]
+        erlang: [27, 28, 29]
