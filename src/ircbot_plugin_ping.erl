@@ -14,14 +14,14 @@ handle_event(Msg, SECRET_KEY) ->
         {in, Ref, [_Sender, _User, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!ping ", Who/binary>>]} ->
             {_, Secs, _} = os:timestamp(),
             Mssg = encode(Channel, Secs, SECRET_KEY),
-            Ref:privmsg(Who, <<"\^APING ", Mssg/binary, "\^A">>);
+            ircbot_api:privmsg(Who, <<"\^APING ", Mssg/binary, "\^A">>, Ref);
 
         {in, Ref, [Sender, _User, <<"NOTICE">>, _Nick, <<"\^APING ", Rest/binary>>]} ->
             {_, Secs, _} = os:timestamp(),
             Mssg = strip_last_byte(Rest),
             {Channel, Secs_prev} = decode(Mssg, SECRET_KEY),
             Lag = list_to_binary(integer_to_list(Secs - Secs_prev)),
-            Ref:privmsg(<<"#",Channel/binary>>, <<Sender/binary, " is lagging ", Lag/binary, " oranges">>);
+            ircbot_api:privmsg(<<"#",Channel/binary>>, <<Sender/binary, " is lagging ", Lag/binary, " oranges">>, Ref);
         _ ->
             ok
     end,

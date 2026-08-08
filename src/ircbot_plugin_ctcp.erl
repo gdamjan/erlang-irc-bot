@@ -13,9 +13,9 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
         {in, Ref, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^AVERSION\^A">>]} ->
-            Ref:notice(Sender, <<"\^AVERSION ", ?VERSION/binary, "\^A">>);
+            ircbot_api:notice(Sender, <<"\^AVERSION ", ?VERSION/binary, "\^A">>, Ref);
         {in, Ref, [Sender, _User, <<"PRIVMSG">>, _Nick, <<"\^APING ", Rest/binary>>]} ->
-            Ref:notice(Sender, <<"\^APING ", Rest/binary>>);
+            ircbot_api:notice(Sender, <<"\^APING ", Rest/binary>>, Ref);
         _ ->
             ok
     end,

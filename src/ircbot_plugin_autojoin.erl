@@ -12,7 +12,7 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
         {in, Ref, [_Sender, _User, <<"INVITE">>, _Nick, <<"#",Channel/binary>>]} ->
-            Ref:join(<<"#",Channel/binary>>);
+            ircbot_api:join(<<"#",Channel/binary>>, Ref);
         _ ->
             ok
     end,

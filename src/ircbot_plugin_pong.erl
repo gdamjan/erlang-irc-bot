@@ -11,7 +11,7 @@ init(_Args) ->
 handle_event(Msg, State) ->
     case Msg of
         {in, Ref, [<<>>,<<>>,<<"PING">>, Server]} ->
-            Ref:pong(Server),
+            ircbot_api:pong(Server, Ref),
             {ok, Server};
         _ ->
             {ok, State}

@@ -43,7 +43,7 @@ response() ->
 handle_event(Msg, State) ->
     case Msg of
         {in, Ref, [_Sender, _Name, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!uptime">>]} ->
-            Ref:privmsg(<<"#",Channel/binary>>, response()),
+            ircbot_api:privmsg(<<"#",Channel/binary>>, response(), Ref),
             {ok, State};
         _ ->
             {ok, State}

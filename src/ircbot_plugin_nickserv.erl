@@ -20,7 +20,7 @@ init(Password) ->
 handle_event(Msg, Password) ->
     case Msg of
         {in, Ref, [<<"NickServ">>, _User, <<"NOTICE">>, _Nick, ?TRIGGER]} ->
-            Ref:privmsg("NickServ", ["identify ", Password]);
+            ircbot_api:privmsg("NickServ", ["identify ", Password], Ref);
         _ ->
             ok
     end,
