@@ -1,0 +1,30 @@
+name: Make a release
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    container:
+      image: erlang:27
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-tags: true
+
+    - run: rebar3 compile
+    - run: rebar3 as prod tar
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v3
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: _build/full/rel/ircbot/ircbot-*.tar.gz
+        prerelease: true
+        draft: true
+

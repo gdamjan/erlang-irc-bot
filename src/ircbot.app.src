@@ -1,6 +1,6 @@
 {application, ircbot, [
     {description, "ircbot"},
-    {vsn, "0.01"},
+    {vsn, git},
     {modules, [
         ircbot_app, ircbot_sup, ircbot_statem, ircbot_api,
         ircbot_lib, ircbot_plugins,
