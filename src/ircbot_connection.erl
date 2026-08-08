@@ -27,7 +27,7 @@ connect(Parent, Host, Port, Ssl) ->
             gen_statem:cast(Parent, connected),
             loop({Parent, Sock, SocketType});
         {error, Reason} ->
-            error_logger:format("gen_tcp:connect error: ~s~n", [inet:format_error(Reason)])
+            logger:error("gen_tcp:connect error: ~s", [inet:format_error(Reason)])
     end,
     exit(die).
 
@@ -71,7 +71,7 @@ loop({_, Sock, SocketType} = State) ->
             SocketType:close(Sock)
 
     after ?RECV_TIMEOUT ->
-            error_logger:format("No activity for more than ~b microseconds. Are we stuck?~n", [?RECV_TIMEOUT]),
+            logger:warning("No activity for more than ~b milliseconds. Are we stuck?", [?RECV_TIMEOUT]),
             SocketType:close(Sock)
     end.
 
