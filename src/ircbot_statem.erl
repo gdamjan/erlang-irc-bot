@@ -45,7 +45,7 @@ standby(enter, _, _Data) ->
     keep_state_and_data;
 
 standby(cast, connect, Data) ->
-    logger:notice("[standby] connecting…"),
+    logger:notice(<<"[standby] <- connect |> connecting">>),
     {next_state, connecting, Data};
 
 standby(EventType, EventContent, Data) ->
@@ -63,7 +63,7 @@ connecting(timeout, _, Data) ->
     {next_state, reconnect, Data};
 
 connecting(cast, connected, Data) ->
-    logger:notice("[connecting] <- connected | => registering"),
+    logger:notice("[connecting] <- connected |> registering"),
     {next_state, registering, Data};
 
 connecting(EventType, EventContent, Data) ->
@@ -85,7 +85,7 @@ registering(cast, {received, Msg}, Data) ->
     {match, IrcMessage} = ircbot_lib:irc_parse(Msg),
     case IrcMessage of
         [_, _, <<"001">>, _, _] ->
-            logger:notice("[registering] <<001 Welcome>> | => ready"),
+            logger:notice("[registering] <<001 Welcome>> |> ready"),
             {next_state, ready, Data#{welcome=>IrcMessage}};
         [_, _, <<"433">>, <<"*">>, <<Nick/binary>>, _] ->
             ChangeNick = [<<"NICK ">>, Nick, ?NICK_SUFFIX],

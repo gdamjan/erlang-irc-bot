@@ -81,9 +81,9 @@ handle_recv_data({Parent, _, _}, LineIn) ->
     gen_statem:cast(Parent, {received, Line}).
 
 handle_closed(Sock) ->
-    error_logger:format("Socket ~w closed [~w]~n", [Sock, self()]).
+    logger:notice("Socket ~w closed [~w]~n", [Sock, self()]).
 
 handle_error(Sock, Reason) ->
-    error_logger:format("Socket ~w error: ~w [~w]~n", [Sock, Reason, self()]).
+    logger:notice("Socket ~w error: ~w [~w]~n", [Sock, Reason, self()]).
 
 code_change(State) -> loop(State).
