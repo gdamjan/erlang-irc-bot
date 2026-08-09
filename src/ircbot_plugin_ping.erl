@@ -12,12 +12,12 @@ init(_Args) ->
 handle_event(Msg, SECRET_KEY) ->
     case Msg of
         {in, Ref, [_Sender, _User, <<"PRIVMSG">>, <<"#",Channel/binary>>, <<"!ping ", Who/binary>>]} ->
-            {_, Secs, _} = os:timestamp(),
+            Secs = erlang:system_time(second),
             Mssg = encode(Channel, Secs, SECRET_KEY),
             ircbot_api:privmsg(Who, <<"\^APING ", Mssg/binary, "\^A">>, Ref);
 
         {in, Ref, [Sender, _User, <<"NOTICE">>, _Nick, <<"\^APING ", Rest/binary>>]} ->
-            {_, Secs, _} = os:timestamp(),
+            Secs = erlang:system_time(second),
             Mssg = strip_last_byte(Rest),
             {Channel, Secs_prev} = decode(Mssg, SECRET_KEY),
             Lag = list_to_binary(integer_to_list(Secs - Secs_prev)),
