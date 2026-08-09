@@ -1,5 +1,4 @@
-An extensible ircbot written in Erlang
-======================================
+# An extensible ircbot written in Erlang
 
 It all started when I decided I need to learn Erlang. At the same time I needed
 a simple ircbot to handle some of the channels I frequent on. These two things
@@ -23,8 +22,7 @@ The bot is MIT licensed (for no particular reason), it's a very liberal license
 with no strings, so you can really do whatever you want with it.
 
 
-Quick start
------------
+## Quick start
 
 First, compile everything:
 
@@ -62,14 +60,13 @@ l(ircbot_statem).
 to reload the `ircbot_statem` module.
 
 
-Erlangs [code switching][code switching] and the gen_statem/gen_event frameworks
+Erlangs [code switching][code switching] and the `gen_statem`/`gen_event` frameworks
 will handle all the details to run the new code without even disconnecting.
 
 [code switching]: http://en.wikipedia.org/wiki/Erlang_%28programming_language%29#Hot_code_loading_and_modules
 
 
-Real OTP Application
---------------------
+## Real OTP Application
 
 ```
 rebar3 as prod release
