@@ -22,9 +22,9 @@ add_handler(GenEv, Plugin, Args)->
         ok ->
             ok;
         {'EXIT', Reason} ->
-            error_logger:error_msg("Problem loading plugin ~p ~p ~n", [Plugin, Reason]);
+            logger:error("Problem loading plugin ~p ~p", [Plugin, Reason]);
         Other ->
-            error_logger:error_msg("Loading ~p reports ~p ~n", [Plugin, Other])
+            logger:error("Loading ~p reports ~p", [Plugin, Other])
     end.
 
 delete_handler(GenEv, Plugin, Args)->
@@ -32,9 +32,9 @@ delete_handler(GenEv, Plugin, Args)->
         ok ->
             ok;
         {'EXIT', Reason} ->
-            error_logger:error_msg("Problem deleting plugin ~p ~p ~n", [Plugin, Reason]);
+            logger:error("Problem deleting plugin ~p ~p", [Plugin, Reason]);
         Other ->
-            error_logger:error_msg("Deleting ~p reports ~p ~n", [Plugin, Other])
+            logger:error("Deleting ~p reports ~p", [Plugin, Other])
     end.
 
 notify(GenEv, Msg) ->
