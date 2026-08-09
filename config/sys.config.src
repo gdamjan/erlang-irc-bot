@@ -1,0 +1,11 @@
+[
+  {ircbot, []},
+  {kernel, [
+    {logger_level, notice},
+    {logger, [
+      {handler, default, logger_std_h, #{
+        formatter => {ircbot_log_formatter, #{}}
+      }}
+    ]}
+  ]}
+].
