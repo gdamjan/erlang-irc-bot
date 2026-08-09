@@ -30,7 +30,7 @@ handle_event(Msg, SECRET_KEY) ->
 
 decode(Bin, SECRET_KEY) ->
     Bin1 = base64:decode(Bin),
-    <<Hmac:20/binary, Secs:32/integer, Channel/binary>> = Bin1,
+    <<Hmac:16/binary, Secs:32/integer, Channel/binary>> = Bin1,
     Msg = <<Secs:32/integer, Channel/binary>>,
     Hmac = crypto:mac(poly1305, SECRET_KEY, Msg),
     {Channel, Secs}.
