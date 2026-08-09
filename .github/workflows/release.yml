@@ -1,30 +1,38 @@
-name: Make a release
+name: Release
 
 on:
-  push:
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  release:
+    types: [created]
 
 jobs:
-  release:
+  build-release:
     runs-on: ubuntu-latest
-    container:
-      image: erlang:27
-
+    permissions:
+      contents: write
     steps:
-    - uses: actions/checkout@v7
-      with:
-        fetch-tags: true
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
-    - run: rebar3 compile
-    - run: rebar3 as prod tar
+      - name: Set up Erlang
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "27"
+          rebar3-version: "3"
 
-    - name: Create Release
-      uses: softprops/action-gh-release@v3
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: _build/full/rel/ircbot/ircbot-*.tar.gz
-        prerelease: true
-        draft: true
+      - name: Cache rebar3 dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/rebar3
+          key: rebar3-${{ hashFiles('rebar.lock') }}
+          restore-keys: rebar3-
 
+      - name: Build prod release tarball
+        run: rebar3 as prod tar
+
+      - name: Upload release artifact
+        uses: softprops/action-gh-release@v3
+        with:
+          #prerelease: false
+          files: |
+            _build/prod/rel/ircbot/ircbot-*.tar.gz

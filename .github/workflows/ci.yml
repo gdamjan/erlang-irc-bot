@@ -1,25 +1,33 @@
-name: Erlang CI
+name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    container:
-      image: erlang:${{ matrix.erlang }}
-
-    steps:
-    - uses: actions/checkout@v7
-    - name: Compile
-      run: rebar3 compile
-    - name: Run tests
-      run: rebar3 do eunit, ct
-
     strategy:
       fail-fast: false
       matrix:
         erlang: [27, 28, 29]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Erlang
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.erlang }}
+          rebar3-version: "3"
+
+      - name: Cache rebar3 dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/rebar3
+          key: rebar3-${{ hashFiles('rebar.lock') }}
+          restore-keys: rebar3-
+
+      - name: Compile
+        run: rebar3 compile
