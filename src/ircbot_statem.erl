@@ -38,7 +38,7 @@ init(Settings) ->
 %%% Standby state - doing nothing, waiting fot the connect command/event
 standby(enter, PrevState, #{connection := Pid} = Data) ->
     logger:notice("[standby] entered from ~p", [PrevState]),
-    catch erlang:exit(Pid, kill),
+    try erlang:exit(Pid, kill) catch _:_ -> ok end,
     {keep_state, maps:remove(connection, Data)};
 
 standby(enter, _, _Data) ->
