@@ -13,14 +13,16 @@ connect(Parent, Host, Port) ->
     connect(Parent, Host, Port, false).
 
 connect(Parent, Host, Port, Ssl) ->
-    Options = [ binary, {active, true}, {packet, line}, {keepalive, true},
-                {send_timeout, ?SEND_TIMEOUT}],
-    SocketType = case Ssl of
+    TcpOptions = [ binary, {active, true}, {packet, line}, {keepalive, true},
+                   {send_timeout, ?SEND_TIMEOUT}],
+    {Options, SocketType} = case Ssl of
                      true ->
                          ssl:start(),
-                         ssl;
+                         SslOptions = TcpOptions ++ [{verify, verify_peer},
+                                                     {cacerts, public_key:cacerts_get()}],
+                         {SslOptions, ssl};
                      false ->
-                         gen_tcp
+                         {TcpOptions, gen_tcp}
                  end,
     case SocketType:connect(Host, Port, Options) of
         {ok, Sock} ->
